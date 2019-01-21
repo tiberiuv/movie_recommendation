@@ -6,7 +6,6 @@ export class Home extends Component {
         return (
             <React.Fragment>
                 <h1> YOU HOME G</h1>
-                {/* <Login /> */}
             </React.Fragment>
         )
     }

@@ -6,8 +6,8 @@ export class App extends Component {
 
         return (
             <div className='root' >
-                <MainRoutes/>
                 <Navbar/>
+                <MainRoutes/>
             </div>
         )
     }

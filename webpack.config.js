@@ -9,9 +9,14 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 const WebpackMd5Hash = require('webpack-md5-hash')
 const CleanWebpackPlugin = require('clean-webpack-plugin')
-
+const autoprefixer = require('autoprefixer')
+require('style-loader')
 const buildEnv = process.env.NODE_ENV || 'production'
 
+const postCssConf = {
+    sourceMap: true,
+    plugins: [autoprefixer({browsers: ['last 2 version']})]
+}
 let CONFIG = {
     production: {
         MINIFY: true,
@@ -26,9 +31,9 @@ let CONFIG = {
 }
 
 CONFIG = CONFIG[buildEnv]
+console.log(CONFIG)
 let minimizer = []
 let plugins = [
-    new CleanWebpackPlugin('dist', {} ),
     new webpack.DefinePlugin({
         __DEV__: buildEnv == 'development',
         __PROD__: buildEnv == 'production',
@@ -43,10 +48,10 @@ let plugins = [
         inject: 'body'
     }),
     new CaseSensitivePathsPlugin(),
-    new MiniCssExtractPlugin({
-        filename: '[name].css',
-        chunkFilename: '[id].css'
-    }),
+    // new MiniCssExtractPlugin({
+    //     filename: '[name].css',
+    //     chunkFilename: '[id].css'
+    // }),
     new WebpackMd5Hash()
 ]
 
@@ -65,11 +70,14 @@ if (CONFIG.MINIFY) {
     ]
     plugins = [
         new webpack.LoaderOptionsPlugin({minimize: true, debug: false}),
+        new CleanWebpackPlugin(DIST_DIR, {} ),
     ].concat(plugins)
 }
 
+let filename = '[name].[hash].js'
+
 if (CONFIG.HOT_RELOAD) {
-    
+    filename = '[name].js'
     plugins = [new webpack.NoEmitOnErrorsPlugin(), new webpack.NamedModulesPlugin()].concat(plugins)
 }
 module.exports = {
@@ -77,7 +85,9 @@ module.exports = {
     output: {
         path: DIST_DIR,
         publicPath: '/',
-        filename: 'bundle.js',
+        filename: filename,
+        chunkFilename: filename,
+        sourceMapFilename: '[file].map',
     },
     optimization: {
         minimizer: minimizer
@@ -86,20 +96,33 @@ module.exports = {
         modules: [path.resolve(__dirname, 'node_modules'), 'stylus'],
         extensions: ['.js', '.jsx', '.styl'],
     },
-    target: 'web',
     module : {
         rules : [
             {
                 test: /\.styl$/,
                 use: [
-                    {loader: MiniCssExtractPlugin.loader},
+                    {loader: 'style-loader'},
+                    // {loader: MiniCssExtractPlugin.loader},
+                    
                     {loader: 'css-loader'},
+                    {
+                        loader: 'postcss-loader', 
+                        options: postCssConf,
+                    },
                     {loader: 'stylus-loader'},
                 ]
             },
             {
                 test: /\.css/,
-                use: [MiniCssExtractPlugin.loader, 'css-loader'],
+                use: [
+                    // {loader: MiniCssExtractPlugin.loader},
+                    {loader: 'style-loader'},
+                    {loader: 'css-loader'},
+                    // {
+                    //     loader: 'postcss-loader', 
+                    //     options: postCssConf,
+                    // }
+                ],
             },
             {
                 test: /\.json$/,

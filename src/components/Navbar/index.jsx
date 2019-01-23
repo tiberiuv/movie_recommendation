@@ -4,7 +4,7 @@ import {Navbar, Nav, NavItem, NavDropdown, MenuItem} from 'react-bootstrap'
 import STYLES from './index.styl'
 
 const NavigationBar = () => (
-    <Navbar inverse collapseOnSelect staticTop className={STYLES.navbar}>
+    <Navbar inverse collapseOnSelect staticTop className={STYLES.abc}>
         <Navbar.Header>
             <Navbar.Toggle />
         </Navbar.Header>

@@ -1,5 +1,5 @@
-import Home from './home.jsx'
-import Login from './login.jsx'
+import Home from './home'
+import Login from './Login/index'
 
 export {Home}
 export {Login}

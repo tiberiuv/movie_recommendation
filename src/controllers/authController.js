@@ -3,53 +3,44 @@ import bcrypt from 'bcryptjs'
 import config from '../conf'
 import jwt from 'jsonwebtoken'
 
-export function signUp (req, res, next) {
-    try {
-        const hashedPass = bcrypt.hashSync(req.body.password)
-        const user = User.create({...req.body, password: hashedPass}, (err, user) => {
-            if (err) return res.status(500).send("There was a problem registering the user.") 
-            // create a token
-            var token = jwt.sign({ id: user._id }, config.secret, {
-                expiresIn: 86400 // expires in 24 hours
-            });
-            return res.status(200).json({user: user, auth: true, token: token}) 
-        })
-    } 
-        catch (e) {
-        return res.status(500).json(e)
-    }
+export const signUp = async (req, res, next) => {
+    const {email, password} = req.body
+    const hashedPass = await bcrypt.hash(password, 13)
+    const _user = await User.findOne({email: email})
+    if(_user) return res.status(409).json({success: false, message: 'Email already taken!'})
+
+    const user = await User.create({email: email, password: hashedPass})
+    var token = jwt.sign({ id: user._id }, config.secret, {
+        expiresIn: '24h' // expires in 24 hours
+    })
+    return res.status(200).json({success: true, user: user, token: token}) 
 }
 
-export function logIn(req, res, next)  {
-    let username = req.body.username;
-    let password = req.body.password;
-    // For the given username fetch user from DB
-    let mockedUsername = 'admin';
-    let mockedPassword = 'password';
+export const logIn = async (req, res, next) => {
+    const {email = '', password = ''} = req.body
 
-    if (username && password) {
-        if (username === mockedUsername && password === mockedPassword) {
-        let token = jwt.sign(
-            {username: username},
-            config.secret,
-            { expiresIn: '24h'} // expires in 24 hours
-        )
-        // return the JWT token for the future API calls
-        res.json({
-            success: true,
-            message: 'Authentication successful!',
-            token: token
-        })
-        } else {
-            res.send(403).json({
-                success: false,
-                message: 'Incorrect username or password'
-        })
-        }
-    } else {
-        res.send(400).json({
+    const user = await User.findOne({email: email})
+
+    if(!user) {
+        return res.status(403).json({
             success: false,
-            message: 'Authentication failed! Please check the request'
+            message: 'Incorrect email'
+        })
+    } 
+
+    const valid = await bcrypt.compare(password, user.password)
+
+    if(!valid) {
+        return res.status(403).json({
+            success: false,
+            message: 'Incorrect password'
         })
     }
+
+    const token = jwt.sign({email: email}, config.secret, { expiresIn: '24h'})
+    return res.status(200).json({
+        success: true,
+        message: 'Authentication successful!',
+        token: token,
+    })
 }

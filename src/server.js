@@ -2,7 +2,7 @@ import express from 'express'
 import routes from './routes'
 import config from './conf'
 import middlewareConfig from './middleware'
-
+import db from './database'
 const app = express()
 
 middlewareConfig(app)

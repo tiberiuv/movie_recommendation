@@ -3,7 +3,7 @@ import {checkToken} from './middleware'
 import asyncMiddleware from './utils/asyncMiddleware'
 
 const routes = (app) => {
-    app.route('/signUp').post(asyncMiddleware(signUp))
+    app.route('/signup').post(asyncMiddleware(signUp))
     app.route('/login').post(asyncMiddleware(logIn))
     app.get('/', checkToken, index)
 }

@@ -33,7 +33,7 @@ export const checkToken = (req, res, next) => {
     if (token) {
         if (token.startsWith('Bearer ')) {
             // Remove Bearer from string
-            token = token.slice(7, token.length);
+            token = token.slice(7, token.length)
         }
         jwt.verify(token, config.secret, (err, decoded) => {
             if (err) {
@@ -42,8 +42,8 @@ export const checkToken = (req, res, next) => {
                 message: 'Token is not valid',
             })
             } else {
-                req.decoded = decoded;
-                next();
+                req.auth = auth
+                next()
             }
         })
     } else {

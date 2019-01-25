@@ -10,11 +10,7 @@ let default_config = {
     },
     salt: '1234s',
     secret: 'mysecretstring',
-    mongo: {
-        uri: 'mongodb+srv://admin:19979899@cluster0-l5hxn.gcp.mongodb.net/auth'
-    }
 }
-// ${encodeURIComponent()
 let config = {
     development: {
         ...default_config,

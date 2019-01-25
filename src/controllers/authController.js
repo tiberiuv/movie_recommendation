@@ -1,22 +1,38 @@
-import User from '../models/usersModel'
 import bcrypt from 'bcryptjs'
-import config from '../conf'
 import jwt from 'jsonwebtoken'
+import User from '../models/usersModel'
+import fs from 'fs'
 
-export const signUp = async (req, res, next) => {
+const privateKEY = fs.readFileSync(__dirname +'/../../keys/jwtRS512.key', 'utf8')
+
+let signOptions = {
+    issuer: 'authService',
+    subject: '',
+    audience: 'moviesWebsite',
+    expiresIn: '24h',
+    algorithm: 'RS512',
+}
+
+export const makePayload = (userId) => {
+    return {id: userId}
+}
+
+export const signUp = async (req, res) => {
     const {email, password} = req.body
-    const hashedPass = await bcrypt.hash(password, 13)
+
     const _user = await User.findOne({email: email})
     if(_user) return res.status(409).json({success: false, message: 'Email already taken!'})
-
+    const hashedPass = await bcrypt.hash(password, 13)
     const user = await User.create({email: email, password: hashedPass})
-    var token = jwt.sign({ id: user._id }, config.secret, {
-        expiresIn: '24h' // expires in 24 hours
-    })
+
+    signOptions = {...signOptions, subject: email}
+
+    var token = await jwt.sign(makePayload(user._id), privateKEY, signOptions)
+
     return res.status(200).json({success: true, user: user, token: token}) 
 }
 
-export const logIn = async (req, res, next) => {
+export const logIn = async (req, res) => {
     const {email = '', password = ''} = req.body
 
     const user = await User.findOne({email: email})
@@ -37,7 +53,7 @@ export const logIn = async (req, res, next) => {
         })
     }
 
-    const token = jwt.sign({email: email}, config.secret, { expiresIn: '24h'})
+    var token = await jwt.sign(makePayload(user._id), privateKEY, signOptions)
     return res.status(200).json({
         success: true,
         message: 'Authentication successful!',

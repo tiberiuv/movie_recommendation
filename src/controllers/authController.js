@@ -1,4 +1,4 @@
-import bcrypt from 'bcryptjs'
+import argon from 'argon2'
 import jwt from 'jsonwebtoken'
 import User from '../models/usersModel'
 import fs from 'fs'
@@ -22,7 +22,8 @@ export const signUp = async (req, res) => {
 
     const _user = await User.findOne({email: email})
     if(_user) return res.status(409).json({success: false, message: 'Email already taken!'})
-    const hashedPass = await bcrypt.hash(password, 13)
+
+    const hashedPass = await argon.hash(password)
     const user = await User.create({email: email, password: hashedPass})
 
     signOptions = {...signOptions, subject: email}
@@ -44,7 +45,7 @@ export const logIn = async (req, res) => {
         })
     } 
 
-    const valid = await bcrypt.compare(password, user.password)
+    const valid = await argon.verify(user.password, password)
 
     if(!valid) {
         return res.status(403).json({

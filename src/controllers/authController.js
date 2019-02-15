@@ -55,6 +55,12 @@ export const logIn = async (req, res) => {
     }
 
     var token = await jwt.sign(makePayload(user._id), privateKEY, signOptions)
+    if(!token) {
+        return res.status(500).json({
+            sucess: false,
+            message: token
+        })
+    }
     return res.status(200).json({
         success: true,
         message: 'Authentication successful!',

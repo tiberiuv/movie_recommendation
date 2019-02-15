@@ -1,5 +1,4 @@
 import {signUp, logIn} from './controllers/authController'
-import {checkToken} from './middleware'
 import asyncMiddleware from './utils/asyncMiddleware'
 
 const routes = (app) => {
@@ -7,11 +6,5 @@ const routes = (app) => {
     app.route('/login').post(asyncMiddleware(logIn))
 }
 
-const index = (req, res) => {
-    return res.json({
-        success: true,
-        message: 'Index page'
-    })
-}
 
 export default routes

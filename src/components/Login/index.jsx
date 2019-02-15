@@ -2,6 +2,7 @@ import STYLES from './index.styl'
 import React, { Component } from 'react'
 import {FormControl, FormGroup, ControlLabel, Button, HelpBlock} from 'react-bootstrap'
 import {Enhancer, connect} from 'react-refetch'
+import CONFIG from '../../config'
 
 const initialState = {
     email: {
@@ -38,23 +39,21 @@ export class Login extends Component {
     }
 
     isValidPassword = (password) => {
-        if(password.length <= 5) { return 'error'}
-        else if(password.length < 10) { return 'warning'}
+        if(password.length <= 4) { return 'error'}
+        else if(password.length < 6) { return 'warning'}
         else return 'success'
     }
 
     doLogin = (e) => {
         e.preventDefault()
-        const {login, fetchLogin} = this.props
+        const {login} = this.props
         const {email, password} = this.state
 
         login({email: email.value, password: password.value})
-        console.log(login)
-        console.log(fetchLogin)
     }
     doRegister = (e) => {
         e.preventDefault()
-        const {signUp, fetchSignUp} = this.props
+        const {signUp} = this.props
         const {email, password} = this.state
         
         signUp({email: email.value, password: password.value})
@@ -64,17 +63,12 @@ export class Login extends Component {
     }
     render() {
         const{email, password} = this.state
-        const LoginButton = () => (
-            <Button type="submit" disabled={!(this.isValid(email) && this.isValid(password))} onClick={this.doLogin}> Login </Button>
-        )
-        const RegisterButton = () => (
-            <Button type="submit" disabled={!(this.isValid(email) && this.isValid(password))} onClick={this.doRegister}> Register </Button>
-        )
+        const{fetchLogin, fetchSignUp} = this.props
         
         return (
             <div className={STYLES.root}>
-                <form className={STYLES.root}>
-                    <FormGroup controlId="1" validationState={!email.changed ? 'success' : email.validation}>
+                <form className={STYLES.form}>
+                    <FormGroup className={STYLES.item} controlId="1" validationState={!email.changed ? 'success' : email.validation}>
                         <ControlLabel> Email </ControlLabel> 
                         <FormControl 
                             type="text" 
@@ -87,7 +81,7 @@ export class Login extends Component {
                         {email.validation != 'success' && <HelpBlock >Not a valid email</HelpBlock>}
                         
                     </FormGroup>
-                    <FormGroup controlId="2" validationState={!password.changed ? 'success' : password.validation}>
+                    <FormGroup className={STYLES.item} controlId="2" validationState={!password.changed ? 'success' : password.validation}>
                         <ControlLabel> Password </ControlLabel> 
                         <FormControl 
                             type="password" 
@@ -97,13 +91,32 @@ export class Login extends Component {
                             onChange={this.handleChange}
                         />
                         <FormControl.Feedback />
-                        {password.validation != 'success'&& <HelpBlock >Password must be longer than 10</HelpBlock>}
+                        {password.validation != 'success'&& <HelpBlock >Password must be longer than 6 characters</HelpBlock>}
                     </FormGroup>
-                    <LoginButton/>
-                    <RegisterButton/>
+                    <div className={STYLES.submit}>
+                        <Button 
+                            className={STYLES.button} 
+                            type="submit" 
+                            disabled={!(this.isValid(email) && this.isValid(password))} 
+                            onClick={this.doLogin}
+                        > 
+                            Login 
+                        </Button>
+                        <Button 
+                            className={STYLES.button} 
+                            type="submit" 
+                            disabled={!(this.isValid(email) && this.isValid(password))} 
+                            onClick={this.doRegister}
+                        > 
+                            Register 
+                        </Button>
+                    </div>
+                    {fetchSignUp && fetchSignUp.fulfilled && fetchSignUp.value 
+                    && <span> Successful register {fetchSignUp.value.token} </span> }
+                    {fetchLogin && fetchLogin.fulfilled && fetchLogin.value
+                    && <span> Successful logged-in {fetchLogin.value.token} </span> }
                 </form>
             </div>
-            
         )
     }
 }
@@ -111,14 +124,14 @@ export class Login extends Component {
 const fetchers = connect(() => ({
     signUp: (body) => ({
         fetchSignUp: {
-            url: `http://localhost:8081/signup`,
+            url: `${CONFIG.auth_api}/signup`,
             method: 'POST',
             body: JSON.stringify(body),
         }
     }),
     login: (body) => ({
         fetchLogin: {
-            url: `http://localhost:8081/login`,
+            url: `${CONFIG.auth_api}/login`,
             method: 'POST',
             body: JSON.stringify(body)
         }

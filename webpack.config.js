@@ -10,13 +10,15 @@ const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 const WebpackMd5Hash = require('webpack-md5-hash')
 const CleanWebpackPlugin = require('clean-webpack-plugin')
 const autoprefixer = require('autoprefixer')
-require('style-loader')
+const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin")
+
 const buildEnv = process.env.NODE_ENV || 'production'
 
 const postCssConf = {
     sourceMap: true,
     plugins: [autoprefixer({browsers: ['last 2 version']})]
 }
+
 let CONFIG = {
     production: {
         MINIFY: true,
@@ -48,10 +50,10 @@ let plugins = [
         inject: 'body'
     }),
     new CaseSensitivePathsPlugin(),
-    // new MiniCssExtractPlugin({
-    //     filename: '[name].css',
-    //     chunkFilename: '[id].css'
-    // }),
+    new MiniCssExtractPlugin({
+        filename: CONFIG.HOT_RELOAD ? '[name].css' : '[name].[hash].css',
+        chunkFilename: CONFIG.HOT_RELOAD ? '[id].css' :  '[id].[hash].css'
+    }),
     new WebpackMd5Hash()
 ]
 
@@ -71,6 +73,7 @@ if (CONFIG.MINIFY) {
     plugins = [
         new webpack.LoaderOptionsPlugin({minimize: true, debug: false}),
         new CleanWebpackPlugin(DIST_DIR, {} ),
+        new OptimizeCSSAssetsPlugin(),
     ].concat(plugins)
 }
 
@@ -78,7 +81,10 @@ let filename = '[name].[hash].js'
 
 if (CONFIG.HOT_RELOAD) {
     filename = '[name].js'
-    plugins = [new webpack.NoEmitOnErrorsPlugin(), new webpack.NamedModulesPlugin()].concat(plugins)
+    plugins = [
+        new webpack.NoEmitOnErrorsPlugin(),
+        new webpack.NamedModulesPlugin(),
+    ].concat(plugins)
 }
 module.exports = {
     entry: `${SRC_DIR}/index.js`,
@@ -101,27 +107,18 @@ module.exports = {
             {
                 test: /\.styl$/,
                 use: [
-                    {loader: 'style-loader'},
-                    // {loader: MiniCssExtractPlugin.loader},
-                    
-                    {loader: 'css-loader'},
-                    {
-                        loader: 'postcss-loader', 
-                        options: postCssConf,
-                    },
-                    {loader: 'stylus-loader'},
+                    CONFIG.HOT_RELOAD ? 'style-loader': {loader: MiniCssExtractPlugin.loader},
+                    {loader: 'css-loader', options: {modules: true}},
+                    {loader: 'postcss-loader', options: postCssConf},
+                    {loader: 'stylus-loader', options: {'resolve url': true}},
                 ]
             },
             {
                 test: /\.css/,
                 use: [
-                    // {loader: MiniCssExtractPlugin.loader},
-                    {loader: 'style-loader'},
+                    CONFIG.HOT_RELOAD ? 'style-loader' : {loader: MiniCssExtractPlugin.loader},
                     {loader: 'css-loader'},
-                    // {
-                    //     loader: 'postcss-loader', 
-                    //     options: postCssConf,
-                    // }
+                    {loader: 'postcss-loader', options: postCssConf}
                 ],
             },
             {

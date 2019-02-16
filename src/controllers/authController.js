@@ -2,7 +2,7 @@ import argon from 'argon2'
 import jwt from 'jsonwebtoken'
 import User from '../models/usersModel'
 import fs from 'fs'
-
+import {sendError, sendSuccess, throwError, throwIf} from '../utils/errorHandling'
 const privateKEY = fs.readFileSync(__dirname +'/../../keys/jwtRS512.key', 'utf8')
 
 let signOptions = {
@@ -18,52 +18,69 @@ export const makePayload = (userId) => {
 }
 
 export const signUp = async (req, res) => {
-    const {email, password} = req.body
+    try {
+        if (!req.body.email && !req.body.password) throwError(400, 'Incorrect Request','Email or password is missing')()
+        const {email, password} = req.body
 
-    const _user = await User.findOne({email: email})
-    if(_user) return res.status(409).json({success: false, message: 'Email already taken!'})
+        const _user = await User
+            .findOne({email: email})
+            .then(
+                throwError(500, 'Mongodb error')
+            )
+        if(_user) throwError(409, 'Incorrect data', 'Email already in use!')
 
-    const hashedPass = await argon.hash(password)
-    const user = await User.create({email: email, password: hashedPass})
+        const hashedPass = await argon
+            .hash(password)
+            .then(
+                throwError(500, 'Argon error')
+            )
+        const user = await User
+            .create({email: email, password: hashedPass})
+            .then(
+                throwError(500, 'Mongo error')
+            )
 
-    signOptions = {...signOptions, subject: email}
+        signOptions = {...signOptions, subject: email}
 
-    var token = await jwt.sign(makePayload(user._id), privateKEY, signOptions)
-
-    return res.status(200).json({success: true, user: user, token: token}) 
+        var token = await jwt
+            .sign(makePayload(user._id), privateKEY, signOptions)
+            .then(
+                throwError(500, 'Jwt sign error')
+            )
+        sendSuccess(res, 'User Created!')({token})
+    } catch(err) {
+        sendError(res)(err)
+    }
 }
 
 export const logIn = async (req, res) => {
-    const {email = '', password = ''} = req.body
+    try {
+        if(!req.body.email && !req.body.password) throwError(400, 'Incorrect request', 'Email or password is missing')
 
-    const user = await User.findOne({email: email})
+        const {email = '', password = ''} = req.body
 
-    if(!user) {
-        return res.status(403).json({
-            success: false,
-            message: 'Incorrect email'
-        })
-    } 
+        const user = await User
+            .findOne({email: email})
+            .then(
+                throwIf(r => !r, 400, 'Not found', 'Email not found'),
+                throwError(500, 'Mongo error')
+            )
 
-    const valid = await argon.verify(user.password, password)
+        await argon
+            .verify(user.password, password)
+            .then(
+                throwIf(r => !r, 403, 'Incorrect', 'Password is incorrect'),
+                throwError(500, 'Argon error')
+            )
 
-    if(!valid) {
-        return res.status(403).json({
-            success: false,
-            message: 'Incorrect password'
-        })
+        var token = await jwt
+            .sign(makePayload(user._id), privateKEY, signOptions)
+            .then(
+                throwError(500, 'Jwt error')
+            )
+        sendSuccess(res, 'Authentication successful')({token})
+
+    } catch (err) {
+        throwError(res)(err)
     }
-
-    var token = await jwt.sign(makePayload(user._id), privateKEY, signOptions)
-    if(!token) {
-        return res.status(500).json({
-            sucess: false,
-            message: token
-        })
-    }
-    return res.status(200).json({
-        success: true,
-        message: 'Authentication successful!',
-        token: token,
-    })
 }

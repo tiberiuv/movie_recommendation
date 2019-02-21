@@ -28,12 +28,11 @@ const MovieSchema = new Schema ({
     },
     posterUrl: {
         type: String,
-        unique: true,
-    }
+    },
 
 }, {autoIndex: false})
 
-const genreToArray = (genreString) => {
+function genreToArray(genreString) {
     return genreString.split('|')
 }
 

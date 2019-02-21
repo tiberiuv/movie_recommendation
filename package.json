@@ -1,25 +1,41 @@
 {
-  "name": "movies",
+  "name": "api_template",
   "version": "1.0.0",
-  "description": "Movies microservice",
+  "description": "Template for express apis",
   "main": "index.js",
   "author": "Tiberiu Simion Voicu <tiberiusimionvoicu@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "mongoose": "^5.4.12",
+    "axios": "^0.18.0",
+    "cheerio": "^1.0.0-rc.2",
+    "dotenv": "^6.2.0",
+    "express": "^4.16.4",
+    "mongoose": "^5.4.13",
     "morgan": "^1.9.1",
-    "nodeenv": "^1.0.0"
+    "postman-request": "^2.88.1-postman.6",
+    "puppeteer": "^1.12.2",
+    "request-promise": "^4.2.4"
   },
   "devDependencies": {
     "@babel/cli": "^7.2.3",
     "@babel/core": "^7.2.2",
     "@babel/node": "^7.2.2",
+    "@babel/plugin-proposal-class-properties": "^7.3.0",
+    "@babel/plugin-proposal-export-default-from": "^7.2.0",
     "@babel/plugin-transform-arrow-functions": "^7.2.0",
     "@babel/preset-env": "^7.3.1",
     "babel-eslint": "^10.0.1",
+    "compression": "^1.7.3",
+    "csv-parser": "^2.1.0",
     "eslint": "^5.13.0",
+    "helmet": "^3.15.1",
     "jest": "^24.1.0",
-    "mongodb": "^3.1.13",
     "nodemon": "^1.18.10"
+  },
+  "scripts": {
+    "build": "rm -rf dist && babel src --out-dir dist",
+    "serve": "NODE_ENV=production node dist/index.js",
+    "start": "NODE_ENV=development nodemon --exec babel-node src/index.js",
+    "test": "jest tests"
   }
 }

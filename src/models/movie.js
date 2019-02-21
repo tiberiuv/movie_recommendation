@@ -1,8 +1,7 @@
 import mongoose, {Schema} from 'mongoose'
-import validator from 'validator'
 
 const MovieSchema = new Schema ({
-    id: {
+    movieId: {
         type: String,
         unique: true,
         required: [true, 'Id is required!'],
@@ -14,18 +13,28 @@ const MovieSchema = new Schema ({
         trim: true,
     },
     genres: {
-        type: Array,
-        required: [true, 'Genre is required!'],
+        type: String,
+        required: [true, 'Genres is required!'],
         trim: true,
+        get: genreToArray,
     },
     imdbId: {
         type: String,
         unique: true,
     },
-    tmbdId: {
+    tmdbId: {
+        type: String,
+        unique: true,
+    },
+    posterUrl: {
         type: String,
         unique: true,
     }
-})
+
+}, {autoIndex: false})
+
+const genreToArray = (genreString) => {
+    return genreString.split('|')
+}
 
 export default mongoose.model('Movie', MovieSchema)

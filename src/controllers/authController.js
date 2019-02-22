@@ -22,31 +22,29 @@ export const signUp = async (req, res) => {
         if (!req.body.email && !req.body.password) throwError(400, 'Incorrect Request','Email or password is missing')()
         const {email, password} = req.body
 
-        const _user = await User
+        await User
             .findOne({email: email})
             .then(
+                throwIf(r => r, 409, 'Incorrect data', 'Email already in use!'),
                 throwError(500, 'Mongodb error')
             )
-        if(_user) throwError(409, 'Incorrect data', 'Email already in use!')
-
         const hashedPass = await argon
             .hash(password)
             .then(
-                throwError(500, 'Argon error')
+                throwIf(r => !r, 500, 'Argon error'),
+                throwError(500, 'Mongodb error')
             )
+
         const user = await User
             .create({email: email, password: hashedPass})
             .then(
-                throwError(500, 'Mongo error')
-            )
+                throwIf(r => !r, 500, 'Mongo error', 'User not created'), 
+                throwError(500, 'Mongo error'))
 
         signOptions = {...signOptions, subject: email}
 
-        var token = await jwt
-            .sign(makePayload(user._id), privateKEY, signOptions)
-            .then(
-                throwError(500, 'Jwt sign error')
-            )
+        const token = jwt.sign(makePayload(user._id), privateKEY, signOptions)
+        if(!token) throwError(500, 'Jwt sign error', 'Something went wrong with signing the jwt')
         sendSuccess(res, 'User Created!')({token})
     } catch(err) {
         sendError(res)(err)
@@ -62,7 +60,7 @@ export const logIn = async (req, res) => {
         const user = await User
             .findOne({email: email})
             .then(
-                throwIf(r => !r, 400, 'Not found', 'Email not found'),
+                throwIf(r => !r, 403, 'Not found', 'Email not found'),
                 throwError(500, 'Mongo error')
             )
 
@@ -81,6 +79,6 @@ export const logIn = async (req, res) => {
         sendSuccess(res, 'Authentication successful')({token})
 
     } catch (err) {
-        throwError(res)(err)
+        sendError(res)(err)
     }
 }

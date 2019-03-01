@@ -1,6 +1,6 @@
-export const throwError = (code, errorType, errorMessage) => error => {
+export const throwError = (status, errorType, errorMessage) => error => {
     if (!error) error = new Error(errorMessage || 'Default Error')
-    error.code = code
+    error.status = status
     error.errorType = errorType
     throw error
 }

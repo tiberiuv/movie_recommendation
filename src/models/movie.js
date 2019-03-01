@@ -28,6 +28,7 @@ const MovieSchema = new Schema ({
     },
     posterUrl: {
         type: String,
+        unique: true,
     },
 
 }, {autoIndex: false})

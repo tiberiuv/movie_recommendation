@@ -24,14 +24,20 @@ export const getMovie = async (req, res) => {
         }
         sendSuccess(res, 'Movie found')({movie})
     } catch (err) {
-        sendError(res, 500)(err)
+        sendError(res)(err)
     }
 }
 
 export const getMovies = async (req, res) => {
+    const {query} = req.body 
+    if(!query) sendError(res, 400, 'Query not provided')()
+    const {offset, count} = query
+    if(!offset || !count) sendError(res, 400, 'Malformed query')()
     try {
         const movie = await Movie
             .find({})
+            .skip(offset)
+            .limit(count)
             .then(
                 throwIf(r => !r, 400, 'Not found', 'MovieId not found'),
                 throwError(500, 'Mongodb error')

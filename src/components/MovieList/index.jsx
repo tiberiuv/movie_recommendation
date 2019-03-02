@@ -1,18 +1,19 @@
 import STYLES from './index.styl'
 import React, {Component} from 'react'
 import Movie from './movie'
+import {withRouter} from 'react-router-dom'
 import {Enhancer, connect} from 'react-refetch'
 import CONFIG from '../../config'
 
 export class MovieList extends Component {
     state = {
         query: {
-            offset: 35,
+            offset: 0,
             count: 20,
         }
     }
-    handleOnClickMovie = () => {
-
+    handleOnClickMovie = (id) => {
+        this.props.history.push(`/movies/${id}`)
     }
 
     componentDidMount = () => {
@@ -28,7 +29,13 @@ export class MovieList extends Component {
             <div className={STYLES.container}>
                 {moviesFetch && moviesFetch.fulfilled && moviesFetch.value &&
                     moviesFetch.value.data.map(movie => (
-                        <Movie key={movie.movieId} title={movie.title} genres={movie.genres} posterUrl={movie.posterUrl}/>
+                        <Movie 
+                            key={movie.movieId}
+                            title={movie.title}
+                            genres={movie.genres}
+                            posterUrl={movie.posterUrl}
+                            onClick={() => this.handleOnClickMovie(movie.movieId)}
+                        />
                     ))
                 }
             </div>
@@ -36,7 +43,7 @@ export class MovieList extends Component {
     }
 }
 
-const fetchers = connect(() => ({
+const withFetchers = connect(() => ({
     getMovies: (query) => ({
         moviesFetch: {
             url: `${CONFIG.moviesApi}/movies/search`,
@@ -47,4 +54,4 @@ const fetchers = connect(() => ({
     })
 }))
 
-export default fetchers(MovieList)
+export default withRouter(withFetchers(MovieList))

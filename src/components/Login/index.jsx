@@ -1,7 +1,9 @@
 import STYLES from './index.styl'
 import React, { Component } from 'react'
-import {FormControl, FormGroup, ControlLabel, Button, HelpBlock} from 'react-bootstrap'
 import {Enhancer, connect} from 'react-refetch'
+import {FormField} from 'mineral-ui'
+import TextInput from 'mineral-ui/TextInput'
+import Button from 'mineral-ui/Button'
 import CONFIG from '../../config'
 
 const initialState = {
@@ -66,49 +68,28 @@ export class Login extends Component {
         const{fetchLogin, fetchSignUp} = this.props
         
         return (
-            <div className={STYLES.root}>
+            <div className={STYLES.container}>
                 <form className={STYLES.form}>
-                    <FormGroup className={STYLES.item} controlId="1" validationState={!email.changed ? 'success' : email.validation}>
-                        <ControlLabel> Email </ControlLabel> 
-                        <FormControl 
-                            type="text" 
-                            values={this.state.email}
-                            placeholder="Email"
-                            name="email"
-                            onChange={this.handleChange}
-                        />
-                        <FormControl.Feedback />
-                        {email.validation != 'success' && <HelpBlock >Not a valid email</HelpBlock>}
-                        
-                    </FormGroup>
-                    <FormGroup className={STYLES.item} controlId="2" validationState={!password.changed ? 'success' : password.validation}>
-                        <ControlLabel> Password </ControlLabel> 
-                        <FormControl 
-                            type="password" 
-                            values={this.state.password}
-                            placeholder="Password"
-                            name="password"
-                            onChange={this.handleChange}
-                        />
-                        <FormControl.Feedback />
-                        {password.validation != 'success'&& <HelpBlock >Password must be longer than 6 characters</HelpBlock>}
-                    </FormGroup>
+                    <FormField
+                        input={TextInput}
+                        name='email'
+                        label='E-mail'
+                        value={email.value}
+                        onChange={this.handleChange}
+                    />
+                    <FormField
+                        input={TextInput}
+                        name='password'
+                        label='Password'
+                        value={password.value}
+                        onChange={this.handleChange}
+                    />
                     <div className={STYLES.submit}>
-                        <Button 
-                            className={STYLES.button} 
-                            type="submit" 
-                            disabled={!(this.isValid(email) && this.isValid(password))} 
-                            onClick={this.doLogin}
-                        > 
-                            Login 
+                        <Button className={STYLES.button} primary fullWidth onClick={this.doLogin}>
+                            Login
                         </Button>
-                        <Button 
-                            className={STYLES.button} 
-                            type="submit" 
-                            disabled={!(this.isValid(email) && this.isValid(password))} 
-                            onClick={this.doRegister}
-                        > 
-                            Register 
+                        <Button className={STYLES.button} primary fullWidth onClick={this.doRegister}>
+                            Register
                         </Button>
                     </div>
                     {fetchSignUp && fetchSignUp.fulfilled && fetchSignUp.value 
@@ -124,15 +105,17 @@ export class Login extends Component {
 const fetchers = connect(() => ({
     signUp: (body) => ({
         fetchSignUp: {
-            url: `${CONFIG.auth_api}/signup`,
+            url: `${CONFIG.authApi}/signup`,
             method: 'POST',
+            force: true,
             body: JSON.stringify(body),
         }
     }),
     login: (body) => ({
         fetchLogin: {
-            url: `${CONFIG.auth_api}/login`,
+            url: `${CONFIG.authApi}/login`,
             method: 'POST',
+            force: true,
             body: JSON.stringify(body)
         }
     })

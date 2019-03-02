@@ -8,9 +8,9 @@ body {
   -moz-osx-font-smoothing: grayscale;
   height: 100%;
 }
-html {
-  height: 100%;
-}
+html,body{ margin:0; padding:0; height:100%; width:100%; }
+#root { margin:0; padding:0; height:100%; width:100%; }
+.root { margin:0; padding:0; height:100%; width:100%; }
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;

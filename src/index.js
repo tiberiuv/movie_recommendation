@@ -4,12 +4,15 @@ import App from './App'
 import './index.css'
 import * as serviceWorker from './serviceWorker'
 import {BrowserRouter} from 'react-router-dom'
+import {ThemeProvider} from 'mineral-ui' 
 
 ReactDOM.render(
     (
-        <BrowserRouter>
-            <App/>
-        </BrowserRouter>
+        <ThemeProvider>
+            <BrowserRouter>
+                <App/>
+            </BrowserRouter>
+        </ThemeProvider>
     )
     ,document.getElementById('root')
 )

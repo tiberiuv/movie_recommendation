@@ -23,12 +23,12 @@ let CONFIG = {
     production: {
         MINIFY: true,
         HOT_RELOAD: false,
-        SOURCE_MAP: 'sourcemap',
+        SOURCE_MAP: 'source-map',
     },
     development: {
         MINIFY: false,
         HOT_RELOAD: true,
-        SOURCE_MAP: 'eval',
+        SOURCE_MAP: 'source-map',
     },
 }
 
@@ -87,6 +87,7 @@ if (CONFIG.HOT_RELOAD) {
     ].concat(plugins)
 }
 module.exports = {
+    target: 'web',
     entry: `${SRC_DIR}/index.js`,
     output: {
         path: DIST_DIR,
@@ -108,7 +109,7 @@ module.exports = {
                 test: /\.styl$/,
                 use: [
                     CONFIG.HOT_RELOAD ? 'style-loader': {loader: MiniCssExtractPlugin.loader},
-                    {loader: 'css-loader', options: {modules: true}},
+                    {loader: 'css-loader', options: {modules: true, localIdentName: '[local]--[hash:base64:5]'}},
                     {loader: 'postcss-loader', options: postCssConf},
                     {loader: 'stylus-loader', options: {'resolve url': true}},
                 ]
@@ -121,10 +122,10 @@ module.exports = {
                     {loader: 'postcss-loader', options: postCssConf}
                 ],
             },
-            {
-                test: /\.json$/,
-                loader: 'json'
-            },
+            // {
+            //     test: /\.json$/,
+            //     loader: 'json-loader'
+            // },
             {
                 test: /\.png$/,
                 loader: 'url-loader?limit=100000&mimetype=image/png'

@@ -1,18 +1,16 @@
 import React from 'react'
-import ReactDOM from 'react-dom'
+import {render} from 'react-dom'
 import App from './App'
 import './index.css'
 import * as serviceWorker from './serviceWorker'
 import {BrowserRouter} from 'react-router-dom'
-import {ThemeProvider} from 'mineral-ui' 
+import '@babel/polyfill'
 
-ReactDOM.render(
+render(
     (
-        <ThemeProvider>
-            <BrowserRouter>
-                <App/>
-            </BrowserRouter>
-        </ThemeProvider>
+        <BrowserRouter>
+            <App/>
+        </BrowserRouter>
     )
     ,document.getElementById('root')
 )

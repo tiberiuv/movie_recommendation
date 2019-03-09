@@ -35,6 +35,7 @@ let CONFIG = {
 CONFIG = CONFIG[buildEnv]
 console.log(CONFIG)
 let minimizer = []
+let splitChunks = {}
 let plugins = [
     new webpack.DefinePlugin({
         __DEV__: buildEnv == 'development',
@@ -63,13 +64,22 @@ if (CONFIG.MINIFY) {
             cache: true,
             parallel: true,
             uglifyOptions: {
-                compress: false,
+                compress: true,
                 ecma: 6,
                 mangle: true
             },
             sourceMap: true
         })
     ]
+    splitChunks = {
+        cacheGroups: {
+            vendor: {
+                test: /[\\/]node_modules[\\/]/,
+                name: 'vendors',
+                chunks: 'all'
+            }
+        }
+    }
     plugins = [
         new webpack.LoaderOptionsPlugin({minimize: true, debug: false}),
         new CleanWebpackPlugin(DIST_DIR, {} ),
@@ -97,6 +107,8 @@ module.exports = {
         sourceMapFilename: '[file].map',
     },
     optimization: {
+        runtimeChunk: 'single',
+        splitChunks,
         minimizer: minimizer
     },
     resolve: {
@@ -144,4 +156,5 @@ module.exports = {
     },
     plugins: plugins,
     devtool: CONFIG.SOURCE_MAP,
+    mode: buildEnv,
 }

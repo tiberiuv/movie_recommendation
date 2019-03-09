@@ -1,24 +1,29 @@
 import STYLES from './index.styl'
 import React from 'react'
-import Card, { CardActions, CardBlock, CardDivider, CardFooter, CardImage, CardTitle } from 'mineral-ui/Card'
-import Button from 'mineral-ui/Button'
+import {Typography, Card, CardMedia, CardContent, CardActionArea} from '@material-ui/core'
 
 export const Movie = ({title, posterUrl, genres, onClick}) => {
     return (
         <Card className={STYLES.card} onClick={onClick}>
-            <CardImage className={STYLES.poster} src={posterUrl} />
-            <CardTitle>{title}</CardTitle>
-            <CardBlock>Some quick example text to build on the card title and make up the bulk of
-                the card's content.
-            </CardBlock>
-            <CardDivider/>
-            <CardBlock>
-                {genres}
-            </CardBlock>
-            {/* <CardActions>
-                <Button primary>Button 1</Button>
-            </CardActions> */}
-            {/* <CardFooter title={genres}/> */}
+            <CardActionArea>
+                <CardMedia
+                    className={STYLES.poster}
+                    image={posterUrl}
+                    title={title}
+                />
+                <CardContent>
+                    <Typography gutterBottom variant="h5" component="h2">
+                        {title}
+                    </Typography>
+                    <Typography component="p">
+                        Lizards are a widespread group of squamate reptiles, with over 6,000 species, ranging
+                        across all continents except Antarctica
+                    </Typography>
+                    <Typography component="p">
+                        {genres}
+                    </Typography>
+                </CardContent>
+            </CardActionArea>
         </Card>
     )
 }

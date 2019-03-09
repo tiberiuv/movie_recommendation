@@ -1,9 +1,10 @@
 import STYLES from './index.styl'
 import React, { Component } from 'react'
 import {Enhancer, connect} from 'react-refetch'
-import {FormField} from 'mineral-ui'
-import TextInput from 'mineral-ui/TextInput'
-import Button from 'mineral-ui/Button'
+// import {FormField} from 'mineral-ui'
+// import TextInput from 'mineral-ui/TextInput'
+// import Button from 'mineral-ui/Button'
+import {TextField, Button} from '@material-ui/core'
 import CONFIG from '../../config'
 
 const initialState = {
@@ -70,25 +71,25 @@ export class Login extends Component {
         return (
             <div className={STYLES.container}>
                 <form className={STYLES.form}>
-                    <FormField
-                        input={TextInput}
+                    <TextField
                         name='email'
                         label='E-mail'
                         value={email.value}
+                        margin='normal'
                         onChange={this.handleChange}
                     />
-                    <FormField
-                        input={TextInput}
+                    <TextField
                         name='password'
                         label='Password'
                         value={password.value}
+                        margin='normal'
                         onChange={this.handleChange}
                     />
                     <div className={STYLES.submit}>
-                        <Button className={STYLES.button} primary fullWidth onClick={this.doLogin}>
+                        <Button className={STYLES.button} color='primary' variant='contained' onClick={this.doLogin}>
                             Login
                         </Button>
-                        <Button className={STYLES.button} primary fullWidth onClick={this.doRegister}>
+                        <Button className={STYLES.button} color='primary' variant='contained' onClick={this.doRegister}>
                             Register
                         </Button>
                     </div>

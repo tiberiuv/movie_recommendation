@@ -6,7 +6,12 @@ RUN npm install --global yarn
 
 COPY package*.json ./
 
-RUN yarn install
+RUN apk add --no-cache --virtual .gyp \
+        python \
+        make \
+        g++ \
+    && yarn install \
+    && apk del .gyp
 
 COPY . .
 
@@ -14,4 +19,4 @@ EXPOSE 3000
 
 RUN yarn run build
 
-CMD [ "yarn", "start" ]
+CMD [ "yarn", "serve" ]

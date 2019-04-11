@@ -1,6 +1,7 @@
 import {Route} from 'react-router-dom'
 import React from 'react'
-import {Home, Login} from './components'
+import {Home} from './components/Pages'
+import Login from './components/Login'
 
 const MainRoutes = () => {
     return (

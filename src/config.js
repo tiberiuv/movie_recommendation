@@ -1,6 +1,6 @@
 
 let default_config = {
-    authApi: 'http://localhost:8081',
+    authApi: 'http://localhost:8080',
     moviesApi: 'http://localhost:8088',
 }
 

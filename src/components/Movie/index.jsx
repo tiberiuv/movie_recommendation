@@ -2,6 +2,7 @@ import React from 'react'
 import {connect} from 'react-refetch'
 import {withRouter} from 'react-router-dom'
 import {STYLES} from './index.styl'
+import CONFIG from '../config'
 
 export class Movie extends React.Component { 
 
@@ -15,7 +16,7 @@ export class Movie extends React.Component {
     }
 }
 
-const withFetchers = connect(() => ({
+const connectFetchers = connect(() => ({
     getMovie: () => ({
         movieFetch: {
             url: `${CONFIG.moviesApi}${this.props.history.location}`,
@@ -26,4 +27,4 @@ const withFetchers = connect(() => ({
     })
 }))
 
-export default withRouter(withFetchers(Movie))
+export default withRouter(connectFetchers(Movie))

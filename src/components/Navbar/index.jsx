@@ -76,27 +76,5 @@ export class NavigationBar extends React.Component {
         )
     }
 }
-const navItems = [
-    {
-        href: '/',
-        text: 'Movies',
-    },
-    {
-        href: '/login',
-        text: 'Login'
-    },
-    {
-        href: '/logout',
-        text: 'logout'
-    }
-]
-
-// export const NavigationBar = ({history}) => (
-//     <PrimaryNav itemElement={Link}>
-//         <NavItem onClick={() => history.push('/')}> Home </NavItem>
-//         <NavItem onClick={() => history.push('/login')}> Login </NavItem>
-//         <NavItem onClick={() => history.push('/logout')}> Logout </NavItem>
-//     </PrimaryNav>
-// )
 
 export default withRouter(NavigationBar)

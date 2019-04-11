@@ -1,6 +1,7 @@
 import STYLES from './index.styl'
 import React from 'react'
 import {Typography, Card, CardMedia, CardContent, CardActionArea} from '@material-ui/core'
+// import Rating from 'react-rating'
 
 export const Movie = ({title, posterUrl, genres, onClick}) => {
     return (
@@ -22,6 +23,7 @@ export const Movie = ({title, posterUrl, genres, onClick}) => {
                     <Typography component="p">
                         {genres}
                     </Typography>
+                    {/* <Rating/> */}
                 </CardContent>
             </CardActionArea>
         </Card>

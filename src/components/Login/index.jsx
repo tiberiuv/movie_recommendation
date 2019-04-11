@@ -1,11 +1,9 @@
 import STYLES from './index.styl'
 import React, { Component } from 'react'
-import {Enhancer, connect} from 'react-refetch'
-// import {FormField} from 'mineral-ui'
-// import TextInput from 'mineral-ui/TextInput'
-// import Button from 'mineral-ui/Button'
+import connect from '../../connectRefetch'
 import {TextField, Button} from '@material-ui/core'
 import CONFIG from '../../config'
+import {setToken} from '../Auth/index'
 
 const initialState = {
     email: {
@@ -32,7 +30,7 @@ export class Login extends Component {
     }
 
     validate = (item, value) => {
-        if(item == 'email') {return this.isValidEmail(value)}
+        if(item === 'email') {return this.isValidEmail(value)}
         else { return this.isValidPassword(value)}
     }
 
@@ -47,13 +45,14 @@ export class Login extends Component {
         else return 'success'
     }
 
-    doLogin = (e) => {
+    doLogin = async (e) => {
         e.preventDefault()
         const {login} = this.props
         const {email, password} = this.state
 
         login({email: email.value, password: password.value})
     }
+
     doRegister = (e) => {
         e.preventDefault()
         const {signUp} = this.props
@@ -61,9 +60,11 @@ export class Login extends Component {
         
         signUp({email: email.value, password: password.value})
     }
+
     isValid = (item) => {
-        return item.changed &&  item.validation == 'success'
+        return item.changed && item.validation == 'success'
     }
+
     render() {
         const{email, password} = this.state
         const{fetchLogin, fetchSignUp} = this.props
@@ -94,22 +95,23 @@ export class Login extends Component {
                         </Button>
                     </div>
                     {fetchSignUp && fetchSignUp.fulfilled && fetchSignUp.value 
-                    && <span> Successful register {fetchSignUp.value.token} </span> }
+                    && <span> Successful register </span> }
                     {fetchLogin && fetchLogin.fulfilled && fetchLogin.value
-                    && <span> Successful logged-in {fetchLogin.value.token} </span> }
+                    && <span> Successful logged-in </span> }
                 </form>
             </div>
         )
     }
 }
 
-const fetchers = connect(() => ({
+const connectedFetchers = connect(() => ({
     signUp: (body) => ({
         fetchSignUp: {
             url: `${CONFIG.authApi}/signup`,
             method: 'POST',
             force: true,
             body: JSON.stringify(body),
+            then: token => setToken(token),
         }
     }),
     login: (body) => ({
@@ -117,40 +119,10 @@ const fetchers = connect(() => ({
             url: `${CONFIG.authApi}/login`,
             method: 'POST',
             force: true,
-            body: JSON.stringify(body)
+            body: JSON.stringify(body),
+            then: token => setToken(token),
         }
     })
 }))
-export default fetchers(Login)
-// type FetchProps = {
-//     fetchTask: PromiseStateProp<TaskConfigResource>,
-//     checksFetch: PromiseStateProp<Array<CheckConfigResource>>,
-//     updateTask: TaskConfigResource => void,
-//     deleteTask: (cb: () => *) => *,
-// }
 
-// export const addFetchers: Enhancer<OwnProps, FetchProps> = connect(({task, onUpdate}: OwnProps) => ({
-//     fetchTask: {
-//         url: `${config.apiV4}/config/tasks/${task.id || ''}`,
-//     },
-//     deleteTask: cb => ({
-//         delete: {
-//             refreshing: true,
-//             url: `${config.apiV4}/config/tasks/${task.id || ''}`,
-//             method: 'POST',
-//             body: JSON.stringify({
-//                 is_deleted: true,
-//             }),
-//             then: cb,
-//         },
-//     }),
-//     updateTask: (body: TaskConfigResource) => ({
-//         fetchTask: {
-//             url: `${config.apiV4}/config/tasks/${task.id || ''}`,
-//             method: 'POST',
-//             body: JSON.stringify(body),
-//             refreshing: true,
-//             then: () => onUpdate(),
-//         },
-//     }),
-// }))
+export default connectedFetchers(Login)

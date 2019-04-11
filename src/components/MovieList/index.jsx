@@ -11,15 +11,17 @@ export const MovieList = ({movies, history}) => {
 
     return(
         <div className={STYLES.container}>
-            {movies.map(movie => (
-                <Movie 
-                    key={movie.movieId}
-                    title={movie.title}
-                    genres={movie.genres}
-                    posterUrl={movie.posterUrl}
-                    onClick={() => handleOnClickMovie(movie.movieId)}
-                />
-            ))}
+            {movies
+                .filter(movie => !!movie.posterUrl)
+                .map(movie => (
+                    <Movie 
+                        key={movie.movieId}
+                        title={movie.title}
+                        genres={movie.genres}
+                        posterUrl={movie.posterUrl}
+                        onClick={() => handleOnClickMovie(movie.movieId)}
+                    />
+                ))}
         </div>
     )
 }

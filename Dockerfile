@@ -15,7 +15,7 @@ RUN apk add --no-cache --virtual .gyp \
 
 COPY . .
 
-EXPOSE 3000
+EXPOSE 8080
 
 RUN yarn run build
 

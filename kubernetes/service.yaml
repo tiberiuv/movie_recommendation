@@ -3,10 +3,11 @@ kind: Service
 metadata:
   name: authentication
 spec:
-  type: LoadBalancer
+  type: NodePort
   selector:
     app: authentication
   ports:
-  - protocol: TCP
+  - name: http
     port: 8080
     targetPort: 8080
+    protocol: TCP

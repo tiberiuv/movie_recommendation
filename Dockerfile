@@ -10,8 +10,8 @@ RUN yarn install
 
 COPY . .
 
-EXPOSE 3000
+EXPOSE 8088
 
 RUN yarn run build
 
-CMD [ "yarn", "start" ]
+CMD [ "yarn", "serve" ]

@@ -1,23 +1,23 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: template
+  name: movie
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: template
+      app: movie
   progressDeadlineSeconds: 120
   template:
     metadata:
-      name: template
+      name: movie
       labels:
-        app: template
+        app: movie
     spec:
       hostAliases:
       - ip: "10.0.2.2"
         hostnames:
-          - "api.template.com"
+          - "api.movie.com"
       containers:
       - name: template
         resources:

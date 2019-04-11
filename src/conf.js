@@ -1,4 +1,4 @@
-import env from 'dotenv/config'
+import 'dotenv/config'
 
 let default_config = {
     PORT: 8088,

@@ -1,7 +1,7 @@
 import compression from 'compression'
 import helmet from 'helmet'
 import morgan from 'morgan'
-import dotenv from 'dotenv/config'
+import 'dotenv/config'
 import express from 'express'
 
 export default (app) => {

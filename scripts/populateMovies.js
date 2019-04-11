@@ -1,9 +1,8 @@
-import mongoose, { Mongoose } from 'mongoose'
+import mongoose from 'mongoose'
 import Movie from '../src/models/movie'
-import env from 'dotenv/config'
+import 'dotenv/config'
 import fs from 'fs'
 import parse from 'csv-parser'
-import {retrievePosterUrl} from '../src/controllers/posterController'
 
 const uri = process.env.MONGO_URI
 mongoose.Promise = Promise

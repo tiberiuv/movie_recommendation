@@ -10,8 +10,8 @@ export const throwIf = (fn, code, errorType, errorMessage) => result => {
     }
     return result
 }
-export const sendSuccess = (res, message) => data => {
-    res.status(200).json({type: 'success', message, data})
+export const sendSuccess = (res) => data => {
+    res.status(200).json(data)
 }
 export const sendError = (res, status, message) => error => {
     res.status(status || error.status).json({

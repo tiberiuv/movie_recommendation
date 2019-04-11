@@ -1,6 +1,16 @@
+import mongoose from 'mongoose'
+import 'dotenv/config'
 import rp from 'request-promise'
 import {throwError} from '../utils/errorHandling'
 import $ from 'cheerio'
+
+const uri = process.env.MONGO_URI
+mongoose.Promise = Promise
+
+mongoose.connect(uri, { useNewUrlParser: true }).then(
+    () => {console.log('connected to db'); readFiles()}
+    // err => {console.log('failed to connect')}
+)
 
 const urls = {
     IMDB: 'https://www.imdb.com'
@@ -17,12 +27,14 @@ const options = (url) => ({
     url,
 })
 
-export const retrievePosterUrl = async (id, site) => {
+const retrieveContentOne = async (id, site) => {
     const fullUrl = urls[site] + '/title/tt' + id
 
     try{
         const html = await rp(options(fullUrl))
         const posterUrl = $('.poster', html).find('img').attr('src')
+        const summary = $('.summary_text', html)
+        const actors = 
         // const summary = $('.summary_text')
         // const poster_html = await rp(options(posterUrl))
         // const poster = poster_html.match(img_regex[site])[0]
@@ -33,6 +45,3 @@ export const retrievePosterUrl = async (id, site) => {
         console.error('Error', err)
     }
 }
-
-
-export default retrievePosterUrl

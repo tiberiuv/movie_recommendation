@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import env from 'dotenv/config'
+import'dotenv/config'
 
 const uri = process.env.MONGO_URI
 

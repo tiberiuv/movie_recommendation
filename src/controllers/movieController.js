@@ -3,7 +3,7 @@ import retrievePoster from './posterController'
 import {sendError, sendSuccess, throwError, throwIf} from '../utils/errorHandling'
 
 export const health = async (req, res) => {
-    return sendSuccess(res, "Alive!")()
+    return sendSuccess(res)('Alive')
 }
 
 export const getMovie = async (req, res) => {
@@ -22,9 +22,9 @@ export const getMovie = async (req, res) => {
                 .then(
                     throwIf(r => !r, 404, 'Mongodb error', 'Did not update with poster'),
                 )
-            return sendSuccess(res, 'Movie found and retrieved poster')(updatedMovie)
+            return sendSuccess(res)(updatedMovie)
         } 
-        return sendSuccess(res, 'Movie found')(movie)
+        return sendSuccess(res)(movie)
     } catch (err) {
         return sendError(res)(err)
     }
@@ -39,7 +39,6 @@ const savePoster = async (movie) => {
 
 export const searchMovies = async (req, res) => {
     try {
-
         const {offset, count} = req.body
         if(!offset || !count) throwError(400,'Bad Request', 'Offset or count missing in query')
 

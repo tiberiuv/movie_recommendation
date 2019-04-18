@@ -19,13 +19,13 @@ spec:
         hostnames:
           - "api.movie.com"
       containers:
-      - name: template
+      - name: movie
         resources:
           requests:
             memory: "64Mi"
           limits:
             memory: "256Mi"
-        image: template:latest
+        image: movie:latest
         imagePullPolicy: Never
         ports:
-        - containerPort: 8080
+        - containerPort: 8088

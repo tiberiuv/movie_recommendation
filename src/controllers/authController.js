@@ -17,6 +17,10 @@ export const makePayload = (userId) => {
     return {id: userId}
 }
 
+export const health = (req, res) => {
+    return sendSuccess(res)('Alive!')
+}
+
 export const signUp = async (req, res) => {
     try {
         if (!req.body.email && !req.body.password) throwError(400, 'Incorrect Request','Email or password is missing')()
@@ -45,7 +49,7 @@ export const signUp = async (req, res) => {
 
         const token = jwt.sign(makePayload(user._id), privateKEY, signOptions)
         if(!token) throwError(500, 'Jwt sign error', 'Something went wrong with signing the jwt')
-        sendSuccess(res, 'User Created!')({token})
+        sendSuccess(res)(token)
     } catch(err) {
         sendError(res)(err)
     }
@@ -71,7 +75,7 @@ export const logIn = async (req, res) => {
             )
 
         var token = jwt.sign(makePayload(user._id), privateKEY, signOptions)
-        sendSuccess(res, 'Authentication successful')(token)
+        sendSuccess(res)(token)
 
     } catch (err) {
         sendError(res)(err)

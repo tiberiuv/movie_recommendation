@@ -1,12 +1,14 @@
 
 let default_config = {
     authApi: 'http://localhost:8080',
-    moviesApi: 'http://localhost:8088',
+    movieApi: 'http://localhost:8088',
 }
 
 let config = {
     development: {
         ...default_config,
+        authApi: 'http://192.168.64.4:31380/auth',
+        movieApi: 'http://192.168.64.4:31380/movie'
     },
     production: {
         ...default_config

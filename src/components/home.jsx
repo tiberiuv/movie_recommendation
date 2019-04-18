@@ -1,8 +1,8 @@
 import React, { Component } from 'react'
+import Movie from './MovieList/movie'
+import MovieList from './MovieList/index'
 import {connect} from 'react-refetch'
-import MovieList from '../MovieList/index'
-import {CircularProgress} from '@material-ui/core'
-import CONFIG from '../../config'
+import CONFIG from '../config'
 
 import STYLES from './home.styl'
 export class Home extends Component {
@@ -34,7 +34,7 @@ export class Home extends Component {
 
     injectState = (nextMovies) => {
         const {movies} = this.state
-        this.setState({movies: [...movies, ...nextMovies]})
+        this.setState({movies: [...movies, ...nextMovies.data]})
     }
 
     render() {
@@ -49,10 +49,9 @@ export class Home extends Component {
                             movies={movies}
                             isLoading={isLoading}
                             onPaginatedSearch={() => this.loadNextMovies()}
-                            refreshing={moviesFetch && moviesFetch.refreshing}
                         />
                     ) : (
-                        <CircularProgress className={STYLES.progress} color='primary'/>
+                        <h1>LOADING</h1>
                     )}
                     
                 </div>

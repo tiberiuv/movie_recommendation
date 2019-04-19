@@ -1,4 +1,4 @@
 /node_modules/
 /datasets/
-dist
-public
+/public/
+/dist/

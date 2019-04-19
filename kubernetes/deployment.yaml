@@ -1,0 +1,31 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: movie
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: movie
+  progressDeadlineSeconds: 120
+  template:
+    metadata:
+      name: movie
+      labels:
+        app: movie
+    spec:
+      hostAliases:
+      - ip: "10.0.2.2"
+        hostnames:
+          - "api.movie.com"
+      containers:
+      - name: movie
+        resources:
+          requests:
+            memory: "64Mi"
+          limits:
+            memory: "256Mi"
+        image: movie:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8088

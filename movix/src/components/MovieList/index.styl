@@ -1,0 +1,24 @@
+:local
+
+    .card
+        height auto
+        width 250px
+        display flex
+        align-items flex-start
+        
+        &:hover
+            cursor pointer
+            border 1px solid gray
+
+    .poster
+        height 200px
+        width auto
+    .container
+        display grid
+        grid-template-columns repeat(auto-fit, minmax(250px, 1fr))
+        grid-gap 50px
+
+        .card
+            margin-bottom 1px
+    .progress
+        margin 5px

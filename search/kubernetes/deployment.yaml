@@ -1,0 +1,31 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: template
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: template
+  progressDeadlineSeconds: 120
+  template:
+    metadata:
+      name: template
+      labels:
+        app: template
+    spec:
+      hostAliases:
+      - ip: "10.0.2.2"
+        hostnames:
+          - "api.template.com"
+      containers:
+      - name: template
+        resources:
+          requests:
+            memory: "64Mi"
+          limits:
+            memory: "256Mi"
+        image: template:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080

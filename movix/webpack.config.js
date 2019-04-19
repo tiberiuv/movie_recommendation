@@ -1,7 +1,7 @@
 require('dotenv').config()
 const path = require('path')
 const SRC_DIR = path.join(__dirname, './src')
-const DIST_DIR = path.join(__dirname, './public')
+const DIST_DIR = path.join(__dirname, './dist')
 const webpack = require('webpack')
 const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')

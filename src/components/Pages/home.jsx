@@ -62,7 +62,7 @@ export class Home extends Component {
 }
 
 const withFetchers = connect(() => {
-    const url = `${CONFIG.movieApi}/movies/search`
+    const url = `${CONFIG.movieApi}/search`
     return({
         getMovies: (query, cb) => ({
             moviesFetch: {

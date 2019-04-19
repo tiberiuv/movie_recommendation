@@ -1,25 +1,27 @@
 import React from 'react'
 import {connect} from 'react-refetch'
 import {withRouter} from 'react-router-dom'
-import {STYLES} from './index.styl'
-import CONFIG from '../config'
+import STYLES from './index.styl'
+import CONFIG from '../../config'
 
-export class Movie extends React.Component { 
+const Movie = ({movieFetch, getMovie, history}) => { 
 
-    render() {
-        return (
-            <div className={STYLES.container}>
-                <h1>{this.props}</h1>
-            </div>
-            
-        )
-    }
+    return (
+        <div className={STYLES.container}>
+            {movieFetch && movieFetch.fulfilled && movieFetch.value && (
+                <h1>{movieFetch.value.title}</h1>
+            )}
+            <h1>afefa</h1>
+        </div>
+        
+    )
 }
 
-const connectFetchers = connect(() => ({
+const connectFetchers = connect(({location}) => ({
+    movieFetch: `${CONFIG.movieApi}${location.pathname.replace('/movies', '')}`,
     getMovie: () => ({
         movieFetch: {
-            url: `${CONFIG.moviesApi}${this.props.history.location}`,
+            url: `${CONFIG.movieApi}${location.pathname.replace('/movies', '')}`,
             method: 'GET',
             force: true,
             refreshing: true,

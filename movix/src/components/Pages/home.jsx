@@ -15,6 +15,7 @@ export class Home extends Component {
         error: '',
         hasMore: true,
         movies: [],
+        openMovies: new Set(),
     }
     
     componentWillMount = async () => {
@@ -37,8 +38,19 @@ export class Home extends Component {
         this.setState({movies: [...movies, ...nextMovies]})
     }
 
+    handleClickMovie = (id) => {
+        const isMovieOpen = this.state.openMovies.has(id)
+        const newOpen = new Set([...this.state.openMovies])
+        if(isMovieOpen) {
+            newOpen.delete(id)
+        } else {
+            newOpen.add(id)
+        }
+        this.setState({openMovies: new Set(newOpen)})
+    }
+
     render() {
-        const {movies} = this.state
+        const {movies, openMovies} = this.state
         const {moviesFetch} = this.props
         const isLoading = !!(moviesFetch && moviesFetch.pending)
         return (
@@ -47,6 +59,8 @@ export class Home extends Component {
                     {movies && movies.length ? (
                         <MovieList
                             movies={movies}
+                            openMovies={openMovies}
+                            handleClickMovie={this.handleClickMovie}
                             isLoading={isLoading}
                             onPaginatedSearch={() => this.loadNextMovies()}
                             refreshing={moviesFetch && moviesFetch.refreshing}

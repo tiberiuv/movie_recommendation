@@ -2,7 +2,7 @@ import React, { useEffect } from 'react'
 import {debounce} from 'lodash'
 
 export const withInfiniteScroll = (WrappedComponent) => {
-    return ({onPaginatedSearch, isLoading, ...props}) => {
+    const InfiniteScroll = ({onPaginatedSearch, isLoading, ...props}) => {
         useEffect(() => {
             window.addEventListener('scroll', onScroll, false)
             return () => window.removeEventListener('scroll', onScroll, false)
@@ -21,6 +21,7 @@ export const withInfiniteScroll = (WrappedComponent) => {
 
         return <WrappedComponent {...props} />
     }
+    return InfiniteScroll
 }
 
 export default withInfiniteScroll

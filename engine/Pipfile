@@ -11,6 +11,8 @@ numpy = "*"
 tensorflow = "*"
 matplotlib = "*"
 flask = "*"
+keras = "*"
+scikit-learn = "*"
 
 [requires]
 python_version = "3.7"

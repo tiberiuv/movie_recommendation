@@ -3,7 +3,7 @@ import {throwError} from '../utils/errorHandling'
 import $ from 'cheerio'
 
 const urls = {
-    IMDB: 'https://www.imdb.com'
+    IMDB: 'https://www.imdb.com/title/tt'
 }
 
 const img_regex = {
@@ -18,7 +18,7 @@ const options = (url) => ({
 })
 
 export const retrievePosterUrl = async (id, site) => {
-    const fullUrl = urls[site] + '/title/tt' + id
+    const fullUrl = urls[site] + id
 
     try{
         const html = await rp(options(fullUrl))

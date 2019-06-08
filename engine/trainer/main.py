@@ -1,28 +1,46 @@
 from NN import NN
 import pandas as pd
-import numpy as np
-from pathlib import Path
 import tensorflow as tf
-from tensorflow.python.lib.io.file_io import FileIO
-EPOCHS = 500
+from tensorflow.python.lib.io import file_io
+import argparse
+from utils import load_data, save_model
+
+EPOCHS = 50
 BATCH_SIZE = 32
 
-def load_data(input_path):
-    return pd.read_csv(input_path, delimiter=',', header=0)
+LOCAL_RATING_PATH = '~/movie_recommandation/datasets/ml-latest-small/ratings.csv'
 
-def main(unused_argv):
-    with tf.device('/device:GPU:0'):
-        (train_file, mode='r')
-        rating_path = Path('~/movie_recommandation/datasets/ml-latest-small/ratings.csv')
-        data = load_data(rating_path)
+# def main(unused_argv):
+def main(job_dir, **args):
+	MODE = 'local'
+	logs_path = job_dir + '/logs/'
 
-        model = NN(data, batch_size=BATCH_SIZE)
-        model.train_model(epochs=EPOCHS)
+	with tf.device('/device:GPU:0'):
+		# with FileIO(train_file, mode='r'):
+		if(args.get('cluster')):
+			MODE = 'cluster'
 
-        model.test_model()
-        model.save_model('/Users/tiberiusimionvoicu/movie_recommandation/engine/results/')
+		rating_data = load_data(LOCAL_RATING_PATH, MODE)
+
+		model = NN(rating_data, batch_size=BATCH_SIZE)
+		model.train_model(epochs=EPOCHS)
+
+		model.test_model()
+		save_model('results/', model, MODE=MODE)
         
 
 if __name__=='__main__':
-    tf.app.run()
+	parser = argparse.ArgumentParser()
+
+	# Input Arguments
+	parser.add_argument(
+		'--job-dir',
+		help='GCS location to write checkpoints and export models',
+		required=True
+    )
+	args = parser.parse_args()
+	arguments = args.__dict__
+
+	main(**arguments)    
+
 

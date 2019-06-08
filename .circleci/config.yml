@@ -1,6 +1,23 @@
 version: 2
 
 jobs:
+  getDiffs:
+    docker: 
+      - image: circleci/node
+    steps:
+      - run:
+        - type: shell
+        command: |
+          COMMIT_RANGE=$(echo $CIRCLE_COMPARE_URL | sed 's:^.*/compare/::g')
+          echo "Commit range: " $COMMIT_RANGE
+          git diff $COMMIT_RANGE --name-status
+          if [[ $(git diff $COMMIT_RANGE --name-status | grep "bar") != "" ]]; then
+            echo "bar"
+          fi
+          if [[ $(git diff $COMMIT_RANGE --name-status | grep "foo") != "" ]]; then
+            echo "foo"
+          fi
+
   build:
     docker:
       - image: circleci/node

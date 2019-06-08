@@ -13,9 +13,7 @@ let signOptions = {
     algorithm: 'RS512',
 }
 
-export const makePayload = (userId) => {
-    return {id: userId}
-}
+export const makePayload = (userId) => ({id: userId})
 
 export const health = (req, res) => {
     return sendSuccess(res)('Alive!')
@@ -23,8 +21,9 @@ export const health = (req, res) => {
 
 export const signUp = async (req, res) => {
     try {
-        if (!req.body.email && !req.body.password) throwError(400, 'Incorrect Request','Email or password is missing')()
         const {email, password} = req.body
+        if (!email || !password) 
+            throwError(400, 'Incorrect Request','Email or password is missing')()
 
         await User
             .findOne({email: email})
@@ -57,8 +56,9 @@ export const signUp = async (req, res) => {
 
 export const logIn = async (req, res) => {
     try {
-        if(!req.body.email && !req.body.password) throwError(400, 'Incorrect request', 'Email or password is missing')
-        const {email = '', password = ''} = req.body
+        const {email, password} = req.body
+        if(!email || !password)
+            throwError(400, 'Incorrect request', 'Email or password is missing')()
 
         const user = await User
             .findOne({email: email})

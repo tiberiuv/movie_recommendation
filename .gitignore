@@ -1,9 +1,11 @@
 /node_modules/
 /datasets/
 dist
-
+tags
 # Temp files
 ~$*.ppt*
 ~$*.doc*
 Backup of *.doc*
 *.tmp
+.env
+.mypy_cache

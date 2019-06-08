@@ -3,7 +3,7 @@ import {Request, Response} from 'express'
 // import {Query} from '../models/query'
 
 export const health = async (req: Request, res: Response) => {
-    sendSuccess(res, 'Alive!')()
+    sendSuccess(res)('Alive!')
 }
 
 export const search = async (req: Request, res: Response) => {

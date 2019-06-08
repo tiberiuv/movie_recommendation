@@ -1,5 +1,9 @@
 from tensorflow.python.keras import Model, estimator
-from tensorflow.python.keras.layers import Embedding, Dense, Dot, Input, Reshape, Dropout, Concatenate, Conv1D
+from tensorflow.python.keras.layers import Embedding, \
+    Dense, Dot, Input, Reshape, \
+    Dropout, Concatenate, Conv1D, \
+    GlobalMaxPool1D, GlobalAveragePooling1D, \
+    MaxPool1D, AveragePooling1D
 from tensorflow.python.keras.models import load_model, model_from_json
 from tensorflow.python.keras import metrics
 from tensorflow.python.keras import callbacks
@@ -11,7 +15,7 @@ from sklearn.model_selection import train_test_split
 
 class NN(object):
 
-    def __init__(self, ratings, batch_size=32, embedding_size=10, genre_embedding_size=5):
+    def __init__(self, ratings, batch_size=32, embedding_size=20, genre_embedding_size=5):
         
         self.batch_size = batch_size
         self.embedding_size = embedding_size
@@ -54,17 +58,37 @@ class NN(object):
 
         merged_embedding = Concatenate(axis=2)([user_embedding, movie_embedding])
         # merged_embedding = Concatenate(axis=2)[user_embedding, movie_embedding, genre_embedding]
-        # conv_1 = Dropout(0.2)(Conv1D(filters=64, kernel_size=2, activation='relu', padding='valid')(merged_embedding))
-        # conv_2 = Dropout(0.2)(Conv1D(filters=64, kernel_size=3, activation='relu', padding='valid')(conv_1))
-        # conv_3 = Dropout(0.2)(Conv1D(filters=64, kernel_size=5, activation='relu', padding='valid')(conv_2))
-        # fc_1 = Dropout(0.2)(Dense(32, activation='relu', use_bias=True)(conv_3))
+        conv_1 = Dropout(0.2)(Conv1D(
+                            filters=64, 
+                            kernel_size=2,
+                            activation='relu',
+                            padding='same',
+                            strides=1)(merged_embedding))
+        max_pool_1 = MaxPool1D(pool_size=1, strides=5)(conv_1)
+        conv_2 = Dropout(0.2)(Conv1D(
+                            filters=128,
+                            kernel_size=2,
+                            activation='relu',
+                            padding='same',
+                            strides=1)(max_pool_1))
+        max_pool_2 = MaxPool1D(pool_size=1, strides=5)(conv_2)
+        conv_3 = Dropout(0.2)(Conv1D(
+                            filters=256,
+                            kernel_size=5,
+                            activation='relu',
+                            padding='same',
+                            strides=1)(max_pool_2))
+        average_pool_1 = AveragePooling1D(pool_size=1, strides=10)(conv_3)
+        global_average_pool_1 = GlobalAveragePooling1D()(average_pool_1)
+        # fc_1 = Dropout(0.2)(Dense(128, activation='relu', use_bias=True)(global_average_pool_1))
         # fc_1 = Dropout(0.2)(Dense(256, activation='relu', use_bias=True)(merged_embedding))
-        fc_2 = Dropout(0.2)(Dense(128, activation='relu', use_bias=True)(merged_embedding))
-        fc_3 = Dropout(0.2)(Dense(64, activation='relu', use_bias=True)(fc_2))
-        fc_4 = Dropout(0.2)(Dense(32, activation='relu', use_bias=True)(fc_3))
+        # fc_2 = Dropout(0.2)(Dense(128, activation='relu', use_bias=True)(merged_embedding))
+        # fc_3 = Dropout(0.2)(Dense(64, activation='relu', use_bias=True)(fc_2))
+        # fc_4 = Dropout(0.2)(Dense(32, activation='relu', use_bias=True)(fc_3))
         # Output neuron
         
-        out = Dense(1, activation = 'relu', use_bias=True)(fc_4)
+        # out = Dense(1, activation = 'relu', use_bias=True)(fc_4)
+        out = Dense(1, activation = 'relu', use_bias=True)(global_average_pool_1)
 
         self.model = Model(inputs = [user, movie], outputs = out)
         print(self.model.summary())
@@ -83,25 +107,4 @@ class NN(object):
         print('\n# Evaluate on test data')
         results = self.model.evaluate(x=[self.users_test, self.movies_test], y=self.test.rating, batch_size=128)
         print('test loss, test acc:', results)
-
-        # # Generate predictions (probabilities -- the output of the last layer)
-        # # on new data using `predict`
-        # print('\n# Generate predictions for 3 samples')
-        # predictions = self.model.predict(x_test[:3])
-        # print('predictions shape:', predictions.shape)
-
-    
-    def save_model(self, path):
-        save_h5_path = Path(path +'test_model.h5')
-        save_json_path = Path(path + 'test_model.json')
-        self.model.save(save_h5_path, overwrite=True)
-        json_string = self.model.to_json()
-        with open(save_json_path, 'w+') as f:
-            f.write(json_string)
-    
-    def load_model(self, path):
-        trained_model_path = Path(path + 'test_model.h5')
-        structure_model_path = Path(path + 'test_model.json')
-        # model = model_from_json(json_string)
-        self.model = load_model(trained_model_path)
 

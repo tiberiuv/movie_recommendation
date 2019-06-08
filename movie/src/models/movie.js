@@ -30,6 +30,10 @@ const MovieSchema = new Schema ({
         type: String,
         unique: true,
     },
+    production: {
+        type: Schema.Types.ObjectId,
+        ref: 'Production'
+    }
 
 }, {autoIndex: false})
 

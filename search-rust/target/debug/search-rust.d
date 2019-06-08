@@ -1,1 +1,0 @@
-/Users/tiberiusimionvoicu/movie_recommandation/search-rust/target/debug/search-rust.dSYM: /Users/tiberiusimionvoicu/movie_recommandation/search-rust/src/main.rs /Users/tiberiusimionvoicu/movie_recommandation/search-rust/src/service.rs

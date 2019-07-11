@@ -8,4 +8,7 @@ tags
 Backup of *.doc*
 *.tmp
 .env
-.mypy_cache
+/.mypy_cache/
+engine/.mypy_cache/
+*.pyc
+__pycache__

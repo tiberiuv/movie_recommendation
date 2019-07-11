@@ -1,11 +1,8 @@
 import compression from 'compression'
 import helmet from 'helmet'
 import morgan from 'morgan'
-import dotenv from 'dotenv/config'
-import express from 'express'
+import 'dotenv/config'
 import bodyparser from 'body-parser'
-import jwt from 'jsonwebtoken'
-import config from './conf'
 
 export default (app) => {
     if(process.env.NODE_ENV === 'prod') {

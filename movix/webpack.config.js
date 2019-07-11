@@ -16,7 +16,7 @@ const buildEnv = process.env.NODE_ENV || 'production'
 
 const postCssConf = {
     sourceMap: true,
-    plugins: [autoprefixer({browsers: ['last 2 version']})]
+    plugins: [autoprefixer()]
 }
 
 let CONFIG = {
@@ -45,7 +45,7 @@ let plugins = [
         }
     }),
     new HtmlWebpackPlugin({
-        template: SRC_DIR +'/index.html',
+        template: SRC_DIR + '/index.html',
         filename: 'index.html',
         buildEnv,
         inject: 'body'
@@ -53,7 +53,7 @@ let plugins = [
     new CaseSensitivePathsPlugin(),
     new MiniCssExtractPlugin({
         filename: CONFIG.HOT_RELOAD ? '[name].css' : '[name].[hash].css',
-        chunkFilename: CONFIG.HOT_RELOAD ? '[id].css' :  '[id].[hash].css'
+        chunkFilename: CONFIG.HOT_RELOAD ? '[id].css' : '[id].[hash].css'
     }),
     new WebpackMd5Hash()
 ]
@@ -81,8 +81,11 @@ if (CONFIG.MINIFY) {
         }
     }
     plugins = [
-        new webpack.LoaderOptionsPlugin({minimize: true, debug: false}),
-        new CleanWebpackPlugin(DIST_DIR, {} ),
+        new webpack.LoaderOptionsPlugin({
+            minimize: true,
+            debug: false
+        }),
+        new CleanWebpackPlugin(DIST_DIR, {}),
         new OptimizeCSSAssetsPlugin(),
     ].concat(plugins)
 }
@@ -115,23 +118,44 @@ module.exports = {
         modules: [path.resolve(__dirname, 'node_modules'), 'stylus'],
         extensions: ['.js', '.jsx', '.styl'],
     },
-    module : {
-        rules : [
-            {
+    module: {
+        rules: [{
                 test: /\.styl$/,
                 use: [
-                    CONFIG.HOT_RELOAD ? 'style-loader': {loader: MiniCssExtractPlugin.loader},
-                    {loader: 'css-loader', options: {modules: true, localIdentName: '[local]--[hash:base64:5]'}},
-                    {loader: 'postcss-loader', options: postCssConf},
-                    {loader: 'stylus-loader', options: {'resolve url': true}},
+                    CONFIG.HOT_RELOAD ? 'style-loader' : {
+                        loader: MiniCssExtractPlugin.loader
+                    },
+                    {
+                        loader: 'css-loader',
+                        options: {
+                            modules: true,
+                            localIdentName: '[local]--[hash:base64:5]'
+                        }
+                    },
+                    {
+                        loader: 'postcss-loader',
+                        options: postCssConf
+                    },
+                    {
+                        loader: 'stylus-loader',
+                        options: {
+                            'resolve url': true
+                        }
+                    },
                 ]
-            },
-            {
+            }, {
                 test: /\.css/,
                 use: [
-                    CONFIG.HOT_RELOAD ? 'style-loader' : {loader: MiniCssExtractPlugin.loader},
-                    {loader: 'css-loader'},
-                    {loader: 'postcss-loader', options: postCssConf}
+                    CONFIG.HOT_RELOAD ? 'style-loader' : {
+                        loader: MiniCssExtractPlugin.loader
+                    },
+                    {
+                        loader: 'css-loader'
+                    },
+                    {
+                        loader: 'postcss-loader',
+                        options: postCssConf
+                    }
                 ],
             },
             // {
@@ -148,9 +172,9 @@ module.exports = {
             },
             {
                 test: /\.(js|jsx)$/,
-                include : SRC_DIR,
+                include: SRC_DIR,
                 exclude: /node_modules/,
-                loader : 'babel-loader',
+                loader: 'babel-loader',
             },
         ]
     },

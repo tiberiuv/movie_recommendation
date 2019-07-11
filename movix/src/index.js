@@ -4,7 +4,8 @@ import App from './App'
 import './index.css'
 import * as serviceWorker from './serviceWorker'
 import {BrowserRouter} from 'react-router-dom'
-import '@babel/polyfill'
+import "core-js/stable";
+import "regenerator-runtime/runtime";
 
 render(
     (

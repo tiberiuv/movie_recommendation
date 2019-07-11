@@ -7,12 +7,11 @@ import Movie from './components/Movie'
 const MainRoutes = () => {
     return (
         <React.Fragment>
-            <Route exact path='/' component={Home}/>
-            <Route path='/login' component={Login}/>
-            <Route path='/movies' component={Movie}/>
+            <Route exact path="/" component={Home} />
+            <Route path="/login" component={Login} />
+            <Route path="/movies" component={Movie} />
         </React.Fragment>
     )
 }
 
 export default MainRoutes
-

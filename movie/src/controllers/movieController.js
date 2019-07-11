@@ -40,7 +40,8 @@ const savePoster = async (movie) => {
 export const searchMovies = async (req, res) => {
     try {
         const {offset, count} = req.body
-        if(!offset || !count) throwError(400,'Bad Request', 'Offset or count missing in query')()
+        if(offset === undefined || count === undefined) 
+            throwError(400,'Bad Request', 'Offset or count missing in query')()
 
         const movies = await Movie
             .find({})

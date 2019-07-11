@@ -4,29 +4,42 @@ import tensorflow as tf
 from tensorflow.python.lib.io import file_io
 import argparse
 from utils import load_data, save_model
+from visualize import plot_movie_rating_frequency
 
-EPOCHS = 50
-BATCH_SIZE = 32
+EPOCHS = 500
+BATCH_SIZE = 64
 
-LOCAL_RATING_PATH = '~/movie_recommandation/datasets/ml-latest-small/ratings.csv'
-
+LOCAL_RATING_PATH = '/users/tiberiusimionvoicu/movie_recommandation/datasets/ml-latest-small/ratings.csv'
+LOCAL_MOVIE_PATH = '/users/tiberiusimionvoicu/movie_recommandation/datasets/ml-latest-small/movies.csv'
+GCP_RATING_PATH = 'gs://train_ml_jobs/datasets/ml-latest-small/ratings.csv'
+GCP_MOVIE_PATH = 'gs://train_ml_jobs/datasets/ml-latest-small/movies.csv'
 # def main(unused_argv):
 def main(job_dir, **args):
 	MODE = 'local'
-	logs_path = job_dir + '/logs/'
+	RATING_PATH = LOCAL_RATING_PATH
+	MOVIE_PATH = LOCAL_MOVIE_PATH
+	if job_dir:
+		logs_path = job_dir + '/logs/'
+	else:
+		logs_path = 'logs/'
 
-	with tf.device('/device:GPU:0'):
-		# with FileIO(train_file, mode='r'):
-		if(args.get('cluster')):
+	if(args.get('cluster')):
 			MODE = 'cluster'
+			RATING_PATH = GCP_RATING_PATH
+			MOVIE_PATH = GCP_MOVIE_PATH
+	# with tf.device('/gpu:0'):
+		# sess = tf.Session(config=tf.ConfigProto(log_device_placement=True))
 
-		rating_data = load_data(LOCAL_RATING_PATH, MODE)
+	rating_data = load_data(RATING_PATH)
+	movie_data = load_data(MOVIE_PATH)
 
-		model = NN(rating_data, batch_size=BATCH_SIZE)
-		model.train_model(epochs=EPOCHS)
+	# plot_movie_rating_frequency(rating_data)
+	model = NN(rating_data, movie_data, batch_size=BATCH_SIZE)
+	model.train_model(epochs=EPOCHS)
 
-		model.test_model()
-		save_model('results/', model, MODE=MODE)
+	model.test_model()
+	model.test_on_user(321)
+	# save_model('results/', model, mode=MODE)
         
 
 if __name__=='__main__':
@@ -36,7 +49,12 @@ if __name__=='__main__':
 	parser.add_argument(
 		'--job-dir',
 		help='GCS location to write checkpoints and export models',
-		required=True
+		required=False
+    )
+	parser.add_argument(
+		'--cluster',
+		help='Whether to run local or on cloud',
+		required=False
     )
 	args = parser.parse_args()
 	arguments = args.__dict__

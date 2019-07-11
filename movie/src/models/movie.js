@@ -28,12 +28,17 @@ const MovieSchema = new Schema ({
     },
     posterUrl: {
         type: String,
-        unique: true,
     },
     production: {
         type: Schema.Types.ObjectId,
         ref: 'Production'
-    }
+    },
+    castMembers: {
+        type: [Schema.Types.ObjectId]
+    },
+    summary: {
+        type: String,
+    },
 
 }, {autoIndex: false})
 

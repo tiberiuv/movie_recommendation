@@ -8,7 +8,9 @@ setup(name='trainer',
       author_email='tiberiusimionvoicu@gmail.com',
       license='MIT',
       install_requires=[
+          'tensorflow-gpu',
           'keras',
-          'h5py'
+          'h5py',
+          'sklearn'
       ],
       zip_safe=False)

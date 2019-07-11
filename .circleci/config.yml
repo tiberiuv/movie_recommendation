@@ -11,11 +11,13 @@ jobs:
           COMMIT_RANGE=$(echo $CIRCLE_COMPARE_URL | sed 's:^.*/compare/::g')
           echo "Commit range: " $COMMIT_RANGE
           git diff $COMMIT_RANGE --name-status
-          if [[ $(git diff $COMMIT_RANGE --name-status | grep "bar") != "" ]]; then
-            echo "bar"
+          if [[ $(git diff $COMMIT_RANGE --name-status | grep "movie") != "" ]]; then
+            echo "Changes to movie service"
+            sh ../scripts/handle_changes.sh --service movie
           fi
-          if [[ $(git diff $COMMIT_RANGE --name-status | grep "foo") != "" ]]; then
-            echo "foo"
+          if [[ $(git diff $COMMIT_RANGE --name-status | grep "movix") != "" ]]; then
+            echo "Changes to movix front end service"
+            sh ../scripts/handle_changes.sh --service movix
           fi
 
   build:

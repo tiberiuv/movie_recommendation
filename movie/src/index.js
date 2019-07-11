@@ -3,6 +3,7 @@ import routes from './routes'
 import config from './conf'
 import middlewareConfig from './middleware'
 import './database'
+import 'source-map-support/register'
 
 const app = express()
 
@@ -14,6 +15,6 @@ app.listen(config.PORT, err => {
     if(err) {
         throw err
     } else {
-        console.log(`you are server is running on ${config.PORT}`)
+        console.log(`your server is running on ${config.PORT}`)
     }
 })

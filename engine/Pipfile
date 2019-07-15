@@ -8,11 +8,11 @@ verify_ssl = true
 [packages]
 pandas = "*"
 numpy = "*"
-tensorflow = "*"
+tensorflow = {file = "https://github.com/lakshayg/tensorflow-build/releases/download/tf1.13.1-ubuntu16.04-py3/tensorflow-1.13.1-cp37-cp37m-macosx_10_9_x86_64.whl"}
 matplotlib = "*"
 flask = "*"
-keras = "*"
 scikit-learn = "*"
+keras = "*"
 
 [requires]
 python_version = "3.7"

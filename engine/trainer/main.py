@@ -5,14 +5,20 @@ from tensorflow.python.lib.io import file_io
 import argparse
 from utils import load_data, save_model
 from visualize import plot_movie_rating_frequency
+import os
 
-EPOCHS = 500
-BATCH_SIZE = 64
+dirname = os.path.dirname(__file__)
+print(tf.VERSION)
 
-LOCAL_RATING_PATH = '/users/tiberiusimionvoicu/movie_recommandation/datasets/ml-latest-small/ratings.csv'
-LOCAL_MOVIE_PATH = '/users/tiberiusimionvoicu/movie_recommandation/datasets/ml-latest-small/movies.csv'
-GCP_RATING_PATH = 'gs://train_ml_jobs/datasets/ml-latest-small/ratings.csv'
-GCP_MOVIE_PATH = 'gs://train_ml_jobs/datasets/ml-latest-small/movies.csv'
+EPOCHS = 100
+# BATCH_SIZE = 2**9
+BATCH_SIZE = 2**10
+
+LOCAL_RATING_PATH = os.path.join(dirname, '../../datasets/ml-20m/ratings.csv')
+LOCAL_MOVIE_PATH = os.path.join(dirname, '../../datasets/ml-20m/movies.csv')
+
+GCP_RATING_PATH = 'gs://train_ml_jobs/ml-20m/ratings.csv'
+GCP_MOVIE_PATH = 'gs://train_ml_jobs/ml-20m/movies.csv'
 # def main(unused_argv):
 def main(job_dir, **args):
 	MODE = 'local'
@@ -27,19 +33,16 @@ def main(job_dir, **args):
 			MODE = 'cluster'
 			RATING_PATH = GCP_RATING_PATH
 			MOVIE_PATH = GCP_MOVIE_PATH
-	# with tf.device('/gpu:0'):
-		# sess = tf.Session(config=tf.ConfigProto(log_device_placement=True))
 
 	rating_data = load_data(RATING_PATH)
 	movie_data = load_data(MOVIE_PATH)
 
 	# plot_movie_rating_frequency(rating_data)
 	model = NN(rating_data, movie_data, batch_size=BATCH_SIZE)
-	model.train_model(epochs=EPOCHS)
+	# model.train_model(epochs=EPOCHS)
 
-	model.test_model()
-	model.test_on_user(321)
-	# save_model('results/', model, mode=MODE)
+	model.load_model(os.path.join(dirname, '../model.h5'))
+	model.test_on_user(12413)
         
 
 if __name__=='__main__':

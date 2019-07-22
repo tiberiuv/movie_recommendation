@@ -6,6 +6,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 import tensorflow as tf
+import datetime
 # import tensorflow.keras as keras
 from keras.models import Model
 from keras.layers import Embedding, \
@@ -257,14 +258,17 @@ class NN(object):
             use_multiprocessing=True
         )
         print('\nhistory dict:', history.history)
-
+        save_history(history.history)
         try:
             self.s_model.save_weights('model.h5')
-        except err:
-            print('Error saving: ',err)
+        except AttributeError:
+            print('Saving single gpu model')
             self.model.save_weights('model.h5')
         
-
+    def save_history(history):
+        with open('history.txt', 'a+') as file:
+            file.write('\n' + datetime.datetime() + ',')
+            [file.write(k + ',' + ','.join(v)) for k,v in history.items()]
 
     def test_model(self):
         # Evaluate the model on the test data using `evaluate`

@@ -1,6 +1,6 @@
 {
     "extends": "react-app",
     "env": {
-        "node": true
+        "node": false
     }
 }

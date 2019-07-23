@@ -1,8 +1,11 @@
+import fs from 'fs'
+
 let default_config = {
     gatewayApi: 'http://localhost:8080',
     movieApi: 'http://localhost:8088',
     userApi: 'http://localhost:8087',
     searchApi: 'http://localhost:8086',
+    publicJwt: fs.readFileSync(__dirname + '/../../gateway/keys/jwtRS512.key.pub', 'utf8'),
 }
 
 let config = {

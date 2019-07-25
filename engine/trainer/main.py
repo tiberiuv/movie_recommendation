@@ -8,10 +8,9 @@ from visualize import plot_movie_rating_frequency
 import os
 
 dirname = os.path.dirname(__file__)
-print(tf.VERSION)
 
 EPOCHS = 100
-# BATCH_SIZE = 2**9
+# BATCH_SIZE = 2**10
 BATCH_SIZE = 2**10
 
 LOCAL_RATING_PATH = os.path.join(dirname, '../../datasets/ml-20m/ratings.csv')
@@ -39,10 +38,10 @@ def main(job_dir, **args):
 
 	# plot_movie_rating_frequency(rating_data)
 	model = NN(rating_data, movie_data, batch_size=BATCH_SIZE)
-	# model.train_model(epochs=EPOCHS)
+	model.train_model(epochs=EPOCHS)
 
-	model.load_model(os.path.join(dirname, '../model.h5'))
-	model.test_on_user(12413)
+	# model.load_model(os.path.join(dirname, '../model.h5'))
+	# model.test_on_user(12413)
         
 
 if __name__=='__main__':

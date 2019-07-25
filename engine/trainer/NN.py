@@ -1,13 +1,12 @@
-import os
 import sys
+import os
 
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
 import tensorflow as tf
-import datetime
-# import tensorflow.keras as keras
+from datetime import datetime
 from keras.models import Model
 from keras.layers import Embedding, \
     Dense, Dot, Input, Reshape, \
@@ -19,6 +18,7 @@ from keras.models import load_model, model_from_json
 from keras.optimizers import Adam
 from keras.metrics import mae
 from keras import callbacks, regularizers
+from keras.regularizers import l2
 from keras.utils import to_categorical, multi_gpu_model
 from keras.backend.tensorflow_backend import set_session
 from generator import Generator
@@ -28,10 +28,8 @@ import keras
 from sklearn.preprocessing import MultiLabelBinarizer
 
 
-
 def root_mean_squared_error(y_true, y_pred):
     return K.sqrt(K.mean(K.square(y_pred - y_true)))
-
 
 class NN(object):
 
@@ -42,116 +40,129 @@ class NN(object):
         self.embedding_movies = embedding_movies
         self.embedding_genres = embedding_genres
 
-        # counts = ratings['movieId'].value_counts()
-        # ratings = ratings[ratings['movieId'].isin(counts[counts > 50].index)]
-        # ratings.reset_index(drop=True, inplace=True)
-
-        # scaler = preprocessing.MinMaxScaler(feature_range=(-1,1))
-        # ratings['ratings'] = scaler.fit_transform(ratings['ratings'].values.reshape(-1, 1))
-
-        self.n_users = ratings['userId'].drop_duplicates().size
-        self.n_movies = ratings['movieId'].drop_duplicates().size
+        self.n_users = len(ratings['userId'].unique())
+        self.n_movies = len(ratings['movieId'].unique())
 
         genres = list(set([j for i in movies['genres'].values for j in i.split('|')]))
         self.n_genres = len(genres)
-        # genresMap = {x:idx for idx,x in enumerate(genres)}
-        # def make_multi_one_hot(genreStr):
-        #     genres = genreStr.split('|')
-        #     encoding = np.arange(0, self.n_genres)
-        #     for g in genres:
-        #         encoding[]
 
-        # movies['genreEmbeddingId'] = movies['genres'].map(lambda x: list(map(lambda y: genresMap[y], x.split('|'))))
-        # ratings['genreEmbeddingId'] = movies.merge(ratings, on='movieId')[['genreEmbeddingId']]
-        # genres = movies['genres'].map(lambda x: x.split('|'))
         one_hot = MultiLabelBinarizer()
-        # print([tuple(x) for x in one_hot.fit_transform(movies['genres'].map(lambda x: x.split('|'))).tolist()])
         movies['genreEmbedding'] = [tuple(x) for x in one_hot.fit_transform(movies['genres'].map(lambda x: x.split('|'))).tolist()]
         ratings['genreEmbedding'] = movies.merge(ratings, on='movieId')[['genreEmbedding']]
 
         usersMap = {x:idx for idx,x in enumerate(ratings['userId'].drop_duplicates().values.tolist())}
         moviesMap = {x:idx for idx,x in enumerate(ratings['movieId'].drop_duplicates().values.tolist())}
+
         ratings['userEmbeddingId'] = ratings['userId'].map(usersMap).fillna(ratings['userId'])
         ratings['movieEmbeddingId'] = ratings['movieId'].map(moviesMap).fillna(ratings['movieId'])
-        
-        # min_max_scaler = preprocessing.MinMaxScaler()
-        # print(ratings['ratings'].describe())
-        # ratings['ratings'] = min_max_scaler.fit_transform(ratings['ratings'].values.reshape((-1,1)))
-        # print(ratings['ratings'].describe())
+
+        self.user_avg_ratings = {idx:x for idx,x in enumerate(ratings.groupby(['userEmbeddingId'])['rating'].mean().values.tolist())}
+        self.movie_avg_ratings = {idx:x for idx,x in enumerate(ratings.groupby(['movieEmbeddingId'])['rating'].mean().values.tolist())}
+        # self.movie_genre_embeddings =  
+        # print(self.user_avg_ratings[512], ratings[ratings['userEmbeddingId'] == 512])
+        # print(self.movie_avg_ratings[512], ratings[ratings['movieEmbeddingId'] == 512])
         shuffled_ratings = ratings.sample(frac=1., random_state=24)
 
         self.ratings = shuffled_ratings
+        print(self.ratings.head(20))
+
         self.train, self.test = train_test_split(shuffled_ratings, test_size=0.1)
-        # self.train.reset_index(drop=True, inplace=True)
-        # self.test.reset_index(drop=True, inplace=True)
 
         self.movies = movies
 
         self.build_model()
 
     def build_model(self):
+        print()
+        w_reg = 1e-7
+        a_reg = 1e-5
+
+        def dense():
+            return {
+                "kernel_initializer":'he_normal',
+                "kernel_regularizer": l2(w_reg),
+                # "activity_regularizer": l2(a_reg)
+            }
+        
+        def embedding(input_dim, output_dim):
+            return {
+                "input_dim": input_dim+1,
+                "output_dim": output_dim,
+                "input_length": 1,
+                "embeddings_initializer": 'he_normal',
+                "embeddings_regularizer": l2(w_reg),
+            }
+        
         user = Input(name='user', shape=[1])
+        user_avg_rating = Input(name='user_avg_rating', shape=[1])
+        reshaped_user_avg_rating = Reshape((1,1))(user_avg_rating)
+
         movie = Input(name='movie', shape=[1])
+        movie_avg_rating = Input(name='movie_avg_rating', shape=[1])
+        reshaped_movie_avg_rating = Reshape((1,1))(movie_avg_rating)
+
         genres = Input(name='genre', shape=[self.n_genres])
+
         user_embedding = Embedding(
-            name='user_embedding',
-            input_dim=self.n_users+1,
-            output_dim=self.embedding_user,
-            input_length=1
+            name="user_embedding",
+            **embedding(self.n_users, self.embedding_user)
         )(user)
-        user_embedding = Dropout(0.2)(user_embedding)
+        user_embedding = Dropout(0.3)(user_embedding)
+        user_embedding = BatchNormalization()(user_embedding)
+        user_embedding = Concatenate(axis=2)([user_embedding, reshaped_user_avg_rating])
         
         movies_embedding = Embedding(
             name='movies_embedding',
-            input_dim=self.n_movies+1,
-            output_dim=self.embedding_movies,
-            input_length=1
+            **embedding(self.n_movies, self.embedding_movies)
         )(movie)
-        movies_embedding = Dropout(0.2)(movies_embedding)
+        movies_embedding = Dropout(0.3)(movies_embedding)
+        movies_embedding = BatchNormalization()(movies_embedding)
+        movies_embedding = Concatenate(axis=2)([movies_embedding, reshaped_movie_avg_rating])
 
-        # genre_embedding = Embedding(
-        #     name='genre_embedding',
-        #     input_dim=self.n_genres+1,
-        #     output_dim=self.embedding_genres
-        # )(genres)
-        # genre_embedding = keras.layers.Lambda(lambda x: K.mean(x, axis=1, keepdims=True))(genre_embedding)
-        genre_embedding = Dense(self.embedding_genres, name='genre_embedding')(genres)
+        genre_embedding = Dense(
+            self.embedding_genres,
+            name='genre_embedding',
+            **dense()
+        )(genres)
         genre_embedding = LeakyReLU()(genre_embedding)
-        genre_embedding = Dropout(0.2)(genre_embedding)
-        print(genre_embedding.shape)
+        genre_embedding = Dropout(0.3)(genre_embedding)
+        genre_embedding = BatchNormalization()(genre_embedding)
         genre_embedding = Reshape((1, self.n_genres))(genre_embedding)
-        print(movies_embedding.shape)
-        print(genre_embedding.shape)
 
         merged_embedding = Flatten()(Concatenate(axis=2)([user_embedding, movies_embedding, genre_embedding]))
+        # merged_embedding = Flatten()(Concatenate(axis=2)([user_embedding, movies_embedding]))
 
-        dense_1 = Dense(2048)(merged_embedding)
+        dense_1 = Dense(2048, **dense())(merged_embedding)
         dense_1 = LeakyReLU()(dense_1)
         dense_1 = Dropout(0.3)(dense_1)
+        dense_1 = BatchNormalization()(dense_1)
 
-        dense_2 = Dense(2048)(dense_1)
-        dense_2 = LeakyReLU()(dense_2)
-        dense_2 = Dropout(0.3)(dense_2)
+        # dense_2 = Dense(2048, **dense())(dense_1)
+        # dense_2 = LeakyReLU()(dense_2)
+        # # dense_2 = Dropout(0.3)(dense_2)
+        # dense_2 = BatchNormalization()(dense_2)
 
-        dense_3 = Dense(1024)(dense_2)
+        dense_3 = Dense(1024, **dense())(dense_1)
         dense_3 = LeakyReLU()(dense_3)
         dense_3 = Dropout(0.3)(dense_3)
+        # dense_3 = BatchNormalization()(dense_3)
 
-        dense_4 = Dense(1024)(dense_3)
-        dense_4 = LeakyReLU()(dense_4)
-        dense_4 = Dropout(0.3)(dense_4)
+        # dense_4 = Dense(1024, **dense())(dense_3)
+        # dense_4 = LeakyReLU()(dense_4)
+        # dense_4 = Dropout(0.3)(dense_4)
+        # dense_4 = BatchNormalization()(dense_4)
 
-        dense_5 = Dense(512)(dense_4)
+        dense_5 = Dense(512, **dense())(dense_3)
         dense_5 = LeakyReLU()(dense_5)
         dense_5 = Dropout(0.3)(dense_5)
 
-        dense_6 = Dense(256)(dense_5)
+        dense_6 = Dense(256, **dense())(dense_5)
         dense_6 = LeakyReLU()(dense_6)
         dense_6 = Dropout(0.3)(dense_6)
 
-        dense_7 = Dense(128)(dense_6)
+        dense_7 = Dense(128, **dense())(dense_6)
         dense_7 = LeakyReLU()(dense_7)
-        dense_7 = Dropout(0.3)(dense_7)
+        # dense_7 = Dropout(0.3)(dense_7)
 
         out = Dense(1)(dense_7)
 
@@ -222,16 +233,19 @@ class NN(object):
         set_session(tf.Session(config=config))
 
         gpus = os.environ.get('CUDA_VISIBLE_DEVICES', '').split(',')
-        self.model = Model(inputs = [user, movie, genres], outputs = out)
+        # self.model = Model(inputs = [user, movie], outputs = out)
+        self.model = Model(inputs = [user, user_avg_rating, movie, movie_avg_rating, genres], outputs = out)
         print(self.model.summary())
 
-        adam = Adam(lr=0.0002, clipnorm=1.0, clipvalue=0.5) 
-        # lr 0.00002
+        # adam = Adam(lr=0.0002, clipnorm=1.0, clipvalue=0.5) 
+        adam = Adam(lr=0.0002)
+        # lr 0.0002
         if(len(gpus) > 1 ):
-            with tf.device("/cpu:0"):
-                self.s_model = Model(inputs = [user, movie, genres], outputs = out)
-                self.model = multi_gpu_model(self.s_model, gpus=len(gpus))
-                self.batch_size = self.batch_size * len(gpus)
+            # with tf.device("/cpu:0"):
+                # self.s_model = Model(inputs = [user, movie], outputs = out)
+                self.s_model = Model(inputs = [user, user_avg_rating, movie, movie_avg_rating, genres], outputs = out)
+                self.model = multi_gpu_model(self.s_model, gpus=len(gpus), cpu_merge=False)
+                # self.batch_size = self.batch_size * len(gpus)
                 self.s_model.compile(optimizer='adam', loss='mse', metrics=['mae'])
         # Minimize mse
         self.model.compile(optimizer=adam, loss=root_mean_squared_error, metrics=['mae'])
@@ -241,11 +255,11 @@ class NN(object):
 
         _callbacks = [
             callbacks.TensorBoard(log_dir='./Graph', histogram_freq=0, write_graph=True, write_images=True),
-            callbacks.EarlyStopping('val_loss', patience=2),
+            callbacks.EarlyStopping('val_loss', patience=6),
         ] 
 
-        train_gen = Generator(self.train, self.batch_size)
-        validate_gen = Generator(self.test, self.batch_size)
+        train_gen = Generator(self.train, self.user_avg_ratings, self.movie_avg_ratings, self.batch_size)
+        validate_gen = Generator(self.test, self.user_avg_ratings, self.movie_avg_ratings, self.batch_size)
 
         history = self.model.fit_generator(
             generator=train_gen,
@@ -258,17 +272,18 @@ class NN(object):
             use_multiprocessing=True
         )
         print('\nhistory dict:', history.history)
-        save_history(history.history)
+        self.save_history(history.history)
         try:
             self.s_model.save_weights('model.h5')
         except AttributeError:
             print('Saving single gpu model')
             self.model.save_weights('model.h5')
         
-    def save_history(history):
-        with open('history.txt', 'a+') as file:
-            file.write('\n' + datetime.datetime() + ',')
-            [file.write(k + ',' + ','.join(v)) for k,v in history.items()]
+    def save_history(self, history):
+        pd.DataFrame(history).to_csv('train_history/' + str(datetime.now()) + '.csv')
+        # with open('history.txt', 'a+') as file:
+        #     file.write('\n' + str(datetime.now()) + ',')
+        #     [file.write(k + ',' + ','.join(v)) for k,v in history.items()]
 
     def test_model(self):
         # Evaluate the model on the test data using `evaluate`

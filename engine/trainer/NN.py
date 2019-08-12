@@ -13,9 +13,9 @@ from keras.layers import Embedding, \
     Dropout, Concatenate, Conv1D, \
     GlobalMaxPool1D, GlobalAveragePooling1D, \
     MaxPool1D, AveragePooling1D, BatchNormalization, \
-    Flatten, LeakyReLU, Reshape
+    Flatten, LeakyReLU, Reshape, Lambda
 from keras.models import load_model, model_from_json
-from keras.optimizers import Adam
+from keras.optimizers import Adam, Nadam
 from keras.metrics import mae
 from keras import callbacks, regularizers
 from keras.regularizers import l2
@@ -56,8 +56,12 @@ class NN(object):
         ratings['userEmbeddingId'] = ratings['userId'].map(usersMap).fillna(ratings['userId'])
         ratings['movieEmbeddingId'] = ratings['movieId'].map(moviesMap).fillna(ratings['movieId'])
 
+        # self.scaler = preprocessing.MinMaxScaler().fit(ratings['rating'].values.reshape(-1,1))
+        # ratings['rating'] = self.scaler.transform(ratings['rating'].values.reshape(-1,1))
+
         self.user_avg_ratings = {idx:x for idx,x in enumerate(ratings.groupby(['userEmbeddingId'])['rating'].mean().values.tolist())}
         self.movie_avg_ratings = {idx:x for idx,x in enumerate(ratings.groupby(['movieEmbeddingId'])['rating'].mean().values.tolist())}
+        # ratings['rating'] = self.scaler.inverse_transform(ratings['rating'].values.reshape(-1,1))
         # self.movie_genre_embeddings =  
         # print(self.user_avg_ratings[512], ratings[ratings['userEmbeddingId'] == 512])
         # print(self.movie_avg_ratings[512], ratings[ratings['movieEmbeddingId'] == 512])
@@ -73,9 +77,9 @@ class NN(object):
         self.build_model()
 
     def build_model(self):
-        print()
         w_reg = 1e-7
-        a_reg = 1e-5
+        # w_reg = 1e-6
+        a_reg = 1e-7
 
         def dense():
             return {
@@ -130,11 +134,10 @@ class NN(object):
         genre_embedding = Reshape((1, self.n_genres))(genre_embedding)
 
         merged_embedding = Flatten()(Concatenate(axis=2)([user_embedding, movies_embedding, genre_embedding]))
-        # merged_embedding = Flatten()(Concatenate(axis=2)([user_embedding, movies_embedding]))
 
         dense_1 = Dense(2048, **dense())(merged_embedding)
         dense_1 = LeakyReLU()(dense_1)
-        dense_1 = Dropout(0.3)(dense_1)
+        dense_1 = Dropout(0.4)(dense_1)
         dense_1 = BatchNormalization()(dense_1)
 
         # dense_2 = Dense(2048, **dense())(dense_1)
@@ -144,8 +147,8 @@ class NN(object):
 
         dense_3 = Dense(1024, **dense())(dense_1)
         dense_3 = LeakyReLU()(dense_3)
-        dense_3 = Dropout(0.3)(dense_3)
-        # dense_3 = BatchNormalization()(dense_3)
+        dense_3 = Dropout(0.4)(dense_3)
+        dense_3 = BatchNormalization()(dense_3)
 
         # dense_4 = Dense(1024, **dense())(dense_3)
         # dense_4 = LeakyReLU()(dense_4)
@@ -154,79 +157,21 @@ class NN(object):
 
         dense_5 = Dense(512, **dense())(dense_3)
         dense_5 = LeakyReLU()(dense_5)
-        dense_5 = Dropout(0.3)(dense_5)
+        dense_5 = Dropout(0.4)(dense_5)
+        dense_5 = BatchNormalization()(dense_5)
 
         dense_6 = Dense(256, **dense())(dense_5)
         dense_6 = LeakyReLU()(dense_6)
-        dense_6 = Dropout(0.3)(dense_6)
+        dense_6 = Dropout(0.4)(dense_6)
+        dense_6 = BatchNormalization()(dense_6)
 
         dense_7 = Dense(128, **dense())(dense_6)
         dense_7 = LeakyReLU()(dense_7)
-        # dense_7 = Dropout(0.3)(dense_7)
+        dense_7 = Dropout(0.4)(dense_7)
+        dense_7 = BatchNormalization()(dense_7)
 
         out = Dense(1)(dense_7)
-
-        # merged_embedding = Concatenate(axis=2)([user_embedding, movies_embedding])
-
-        # conv_1 = Conv1D(input_shape=(None,300),
-        #                 filters=256, 
-        #                 kernel_size=3,
-        #                 activation='relu',
-        #                 padding='same',
-        #                 use_bias=False,
-        #                 strides=1)(merged_embedding)
-        # batch_norm_1 = BatchNormalization()(conv_1)
-        # max_pool_1 = MaxPool1D(pool_size=1, strides=5)(batch_norm_1)
-        # # max_pool_1 = Dropout(0.25)(max_pool_1)
-
-        # conv_2 = Conv1D(
-        #                 filters=512,
-        #                 kernel_size=5,
-        #                 activation='relu',
-        #                 padding='same',
-        #                 use_bias=False,
-        #                 strides=1)(max_pool_1)
-        # batch_norm_2 = BatchNormalization()(conv_2)
-        # max_pool_2 = MaxPool1D(pool_size=1, strides=5)(batch_norm_2)
-        # # max_pool_2 = Dropout(0.25)(max_pool_2)
-
-        # conv_3 = Conv1D(
-        #                 filters=1024,
-        #                 kernel_size=5,
-        #                 activation='relu',
-        #                 padding='same',
-        #                 use_bias=False,
-        #                 strides=1)(max_pool_2)
-        # batch_norm_3 = BatchNormalization()(conv_3)
-        # max_pool_3 = MaxPool1D(pool_size=1, strides=5)(batch_norm_3)
-        # # max_pool_3 = Dropout(0.25)(max_pool_3)
-
-        # conv_4 = Conv1D(
-        #                 filters=512,
-        #                 kernel_size=5,
-        #                 activation='relu',
-        #                 padding='same',
-        #                 use_bias=False,
-        #                 strides=1)(max_pool_3)
-        # batch_norm_4 = BatchNormalization()(conv_4)
-        # max_pool_4 = MaxPool1D(pool_size=1, strides=5)(batch_norm_4)
-        # # max_pool_4 = Dropout(0.25)(max_pool_4)
-
-        # conv_5 = Conv1D(
-        #                 filters=256,
-        #                 kernel_size=3,
-        #                 activation='relu',
-        #                 padding='same',
-        #                 use_bias=False,
-        #                 strides=1)(max_pool_4)
-        # batch_norm_5 = BatchNormalization()(conv_5)
-        # max_pool_5 = MaxPool1D(pool_size=1, strides=5)(batch_norm_5)
-        # # max_pool_5 = Dropout(0.25)(max_pool_5)
-
-        # global_average_pool_1 = GlobalAveragePooling1D()(max_pool_5)
-
-        # # Output neuron
-        # out = Dense(1)(global_average_pool_1)
+        # out = Lambda(lambda x: x * (5-1) + 1)(out)
 
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
@@ -237,18 +182,19 @@ class NN(object):
         self.model = Model(inputs = [user, user_avg_rating, movie, movie_avg_rating, genres], outputs = out)
         print(self.model.summary())
 
-        # adam = Adam(lr=0.0002, clipnorm=1.0, clipvalue=0.5) 
-        adam = Adam(lr=0.0002)
+        # adam = Adam(lr=2e-4, epsilon=1e-4, clipnorm=1.0, clipvalue=0.5) 
+        adam = Adam(lr=2e-4, epsilon=1e-4)
+        nadam = Nadam(lr=2e-4, epsilon=1e-4)
         # lr 0.0002
         if(len(gpus) > 1 ):
-            # with tf.device("/cpu:0"):
+            with tf.device("/cpu:0"):
                 # self.s_model = Model(inputs = [user, movie], outputs = out)
                 self.s_model = Model(inputs = [user, user_avg_rating, movie, movie_avg_rating, genres], outputs = out)
-                self.model = multi_gpu_model(self.s_model, gpus=len(gpus), cpu_merge=False)
-                # self.batch_size = self.batch_size * len(gpus)
-                self.s_model.compile(optimizer='adam', loss='mse', metrics=['mae'])
-        # Minimize mse
-        self.model.compile(optimizer=adam, loss=root_mean_squared_error, metrics=['mae'])
+                self.model = multi_gpu_model(self.s_model, gpus=len(gpus))
+                self.batch_size = self.batch_size * len(gpus)
+                self.s_model.compile(optimizer=nadam, loss=root_mean_squared_error, metrics=['mae'])
+        # Minimize rmse
+        self.model.compile(optimizer=nadam, loss=root_mean_squared_error, metrics=['mae'])
 
     def train_model(self, epochs=100):
         print('# Fit model on training data')
@@ -297,6 +243,15 @@ class NN(object):
     def load_model(self, path):
         self.model.load_weights(path)
     
+    def get_embeddings(embedding_name):
+        try:
+            self.model
+        except AttributeError:
+            print('Error please load a model first')
+        
+        movie_embeddings = self.model.get_weights('movie_embedding')
+        user_embeddings = self.model.get_weights('user_embedding')
+
     def predict(self, uid, numRatings):
         ratings = self.ratings
         movies = self.movies

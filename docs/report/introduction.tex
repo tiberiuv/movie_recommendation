@@ -1,0 +1,67 @@
+Nowadays every customer is faced with a multitude of possible choices. Because of this it is very important that the user doesn't have to waste time manually filtering through the items to find relevant ones. Recommender system overcome this by providing personalized recommendations that suit a particular users tastes. They are present in many different websites such as google, amazon and netflix and help highly with user retention and satisfaction. I will focus on the problem of recommending movies and also building the underlying system and infrastructure required to server these recommendations.
+
+\subsection{Dataset}
+The datesets used as basis for the recommendation engine is the movie lens 20m dataset, put together by the Grouplens research group at the university of Minnesota. \citet{movielens}.
+This is an explicit feedback dataset, where users manually assigned ratings to movies. The characteristics of this dataset are the following.
+\begin{itemize}
+    \item 20000263 ratings on a scale of 0.5-5 in 0.5 increments
+    \item 27278 movies having been rated at least once
+    \item 138493 users that have rated at least 20 movies
+    \item 465564 tags about movies
+\end{itemize}
+The dataset is split into different files of which I am only using the ratings, movies and links files. 
+They are all available in comma separated value format.
+The ratings file comprises of values for userId, movieId, rating, and timestamp.\ref{ratingsFile}. Timestamp remains unused while the other values are used together to perform collaborative filtering.
+The movies file is made up of movieId, title and genre. \ref{moviesFile} It is used for incorporating genre data into the model.
+The links file contains movieId, imdbId and tmdbId. \ref{linksFile} This file provides imdbId and tmdbId used in web-scraping scripts to provide content for the demo web-app.
+
+\begin{center}
+    \begin{tabular}{||c c c c||} 
+    \hline
+    userId & movieId & rating & timestamp \\ [0.5ex] 
+    \hline\hline
+    57772 & 3861 & 4.0 & 982690041 \\ 
+    \hline
+    122521 & 1411 & 2.0 & 1001957487 \\
+    \hline
+    22759 & 46578 & 4.0 & 1216540196 \\
+    \hline
+    92812 & 1206 & 2.5 & 1118792437 \\ [1ex] 
+    \hline
+   \end{tabular}
+\captionof{table}{Rating file}\label{ratingsFile}
+\end{center}
+
+\begin{center}
+    \begin{tabular}{||c c c||} 
+    \hline
+    movieId & title & genres \\ [0.5ex] 
+    \hline\hline
+    106749 & Mr. Morgan's Last Love (2013) & Comedy\textbar Drama \\ 
+    \hline
+    2 & Jumanji (1995) & Adventure\textbar Children\textbar Fantasy\\
+    \hline
+    91169 & Easier with Practice (2009) & Drama\textbar Romance \\
+    \hline
+    106879 & Fright Night 2: New Blood (2013) & Horror \\ [1ex] 
+    \hline
+   \end{tabular}
+\captionof{table}{Movie file}\label{moviesFile}
+\end{center}
+
+\begin{center}
+    \begin{tabular}{||c c c||} 
+    \hline
+    movieId & imdbId & tmdbId \\ [0.5ex] 
+    \hline\hline
+    6 & 0113277 & 949 \\ 
+    \hline
+    206 & 0114805 & 77350 \\
+    \hline
+    71466 & 1174730 & 28053 \\
+    \hline
+    96834 & 2343601 & 111174 \\ [1ex] 
+    \hline
+   \end{tabular}
+\captionof{table}{Links file}\label{linksFile}
+\end{center}

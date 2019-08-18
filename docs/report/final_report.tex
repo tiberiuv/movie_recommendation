@@ -1,11 +1,88 @@
-\title{Speech based conversation group inference and minutes transcription}
+\documentclass[12pt]{elsarticle}
+\usepackage{setspace}
+\doublespacing
+
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{lineno}
+\setlength\parindent{0pt}
+\usepackage{multirow}
+\usepackage{tabularx,ragged2e}
+\newcolumntype{C}{>{\Centering\arraybackslash}X} % centered "X" column
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{pdflscape}
+\usepackage[center]{caption}
+\usepackage[super]{nth}
+\usepackage{minted} %for python
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{comment}
+\usepackage{bookmark}
+\usepackage{titlesec}
+\usepackage{amsmath}
+
+\newcommand{\sectionbreak}{\clearpage}
+
+\usepackage{graphicx}
+\usepackage{subfig}
+
+\graphicspath{ {./images/} {./graphs/} }
+
+\makeatletter
+\def\ps@pprintTitle{%
+\let\@oddhead\@empty
+\let\@evenhead\@empty
+\def\@oddfoot{\centerline{\thepage}}%
+\let\@evenfoot\@oddfoot}
+\makeatother
+
+\begin{document}
+
+\begin{frontmatter}
+
+\title{Movie Recommendation System}
+
 \author{Tiberiu Simion Voicu}
 
+\address{Post graduate thesis project, ECS751P}
+
+\begin{abstract}
+    Recommender systems aim to provide users with personalized recommendations of items. This helps a lot in filtering irrelevant items from the big collection. It is usually achieved through collaborative filtering. 
+    Neural network have proven to be highly effective in natural language processing, computer vision and other areas. Despite this they haven't seen as much use in solving recommendation problems. This is partly because state of the art matrix factorization methods are already very effective for this problem. The system described in this paper will make use of multi layer perceptron networks to solve the recommendation problem using collaborative filtering. The design and implementation details of the recommendation engine will be discussed and the results compared with traditional matrix factorization methods. Furthermore it will also go into detail about the choices that went into creating a scalable overall system and accompanying web application.
+\end{abstract}
+
+\end{frontmatter}
+
+\newpage
+\tableofcontents
+
 \section{Introduction}
-Some text
-\section{Literature Review}
-Some text
-\section{Methodology}
-Some text
+\input{introduction.tex}
+
+\section{Background}
+\input{background.tex}
+
+\section{Related Work}
+\citet{HybridAutoencoders} propose a hybrid recommender system based on auto-encoders
+
+\section{System Architecture}
+\input{system_archictecture.tex}
 
 
+\section{Recommendation Engine}
+\input{recommendation_engine.tex}
+
+\section{Evaluation}
+\input{evaluation.tex}
+
+\section{Conclusion}
+\subsection{Future Work}
+
+\bibliography{bibliography}
+\bibliographystyle{IEEEtranN}
+
+\newpage
+\appendix
+
+\end{document}

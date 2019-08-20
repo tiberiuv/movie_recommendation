@@ -22,6 +22,9 @@
 \usepackage{titlesec}
 \usepackage{amsmath}
 
+\usepackage{natbib}
+\bibliographystyle{agsm}
+
 \newcommand{\sectionbreak}{\clearpage}
 
 \usepackage{graphicx}
@@ -49,7 +52,7 @@
 
 \begin{abstract}
     Recommender systems aim to provide users with personalized recommendations of items. This helps a lot in filtering irrelevant items from the big collection. It is usually achieved through collaborative filtering. 
-    Neural network have proven to be highly effective in natural language processing, computer vision and other areas. Despite this they haven't seen as much use in solving recommendation problems. This is partly because state of the art matrix factorization methods are already very effective for this problem. The system described in this paper will make use of multi layer perceptron networks to solve the recommendation problem using collaborative filtering. The design and implementation details of the recommendation engine will be discussed and the results compared with traditional matrix factorization methods. Furthermore it will also go into detail about the choices that went into creating a scalable overall system and accompanying web application.
+    Neural networks have proven to be highly effective in natural language processing, computer vision and speech recognition. Despite this, they haven't seen as much use in solving recommendation problems. This is partly because state of the art matrix factorization methods are already very effective for this problem. The system described in this paper will make use of multilayer perceptron networks to solve the recommendation problem using collaborative filtering. The design and implementation details of the recommendation engine will be discussed and the results compared with traditional matrix factorization methods. Furthermore, it will also go into detail about the choices that went into creating a scalable overall system and accompanying web application.
 \end{abstract}
 
 \end{frontmatter}
@@ -60,11 +63,8 @@
 \section{Introduction}
 \input{introduction.tex}
 
-\section{Background}
+\section{Background \& Related Work}
 \input{background.tex}
-
-\section{Related Work}
-\citet{HybridAutoencoders} propose a hybrid recommender system based on auto-encoders
 
 \section{System Architecture}
 \input{system_archictecture.tex}
@@ -78,11 +78,39 @@
 
 \section{Conclusion}
 \subsection{Future Work}
+Possible improvements to the system include the following.
+\begin{itemize}
+    \item Incorporate more content information into the system such as movie title, summary, and cast. This could be achieved using pre-trained word embeddings such as word2Vec or glove.
+    \item Add recurrent layers such as GRU or LSTM.
+    \item Train a convolutional network on movie posters. Then incorporate said network into the CF model.
+\end{itemize}
 
 \bibliography{bibliography}
-\bibliographystyle{IEEEtranN}
-
 \newpage
 \appendix
+\begin{lstlisting}[language=Python]
+    class Generator(Sequence):
+        def __init__(self, data, user_avg_ratings, movie_avg_ratings, batch_size):
+            self.data = data
+            self.user_avg_ratings = user_avg_ratings
+            self.movie_avg_ratings = movie_avg_ratings
+            self.batch_size = batch_size
+
+        def __len__(self):
+            return int(np.floor(len(self.data) / float(self.batch_size)))
+
+        def __getitem__(self, idx):
+            batch = self.data.take(np.arange(idx * self.batch_size, (idx + 1) * self.batch_size, 1), 0)
+            userIds = batch.loc[:]['userEmbeddingId'].values
+            movieIds = batch.loc[:]['movieEmbeddingId'].values
+            genreEmbeddings = np.array(list(map(lambda x: np.array(x), batch.loc[:]['genreEmbedding'].values)))
+            ratings = batch.loc[:]['rating'].values
+
+            userAvgRatings = np.array([self.user_avg_ratings.get(i) for i in userIds.tolist()])
+            movieAvgRatings = np.array([self.movie_avg_ratings.get(i) for i in movieIds.tolist()])
+
+            # return [[userIds, movieIds, genreEmbeddings], ratings]
+            return [[userIds, userAvgRatings, movieIds, movieAvgRatings, genreEmbeddings], ratings]
+\end{lstlisting}
 
 \end{document}

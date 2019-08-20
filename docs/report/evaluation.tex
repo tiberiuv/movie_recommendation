@@ -9,13 +9,17 @@ The evaluation section with results
 \begin{center}
     \begin{tabular}{||c c c||} 
     \hline
-    Model & RMSE & MAE \\ [0.5ex] 
+    Model & Test RMSE & Test MAE \\ [0.5ex] 
     \hline
     SVD & 0.8152 & 0.6190 \\ 
     \hline
     NMF & 0.8246 & 0.62876 \\
     \hline
-    NNCF+genres & 0.7763 & 0.5861 \\ [1ex]
+    NNCF & 0.7763 & 0.5861 \\
+    \hline 
+    NNCF+genres & 0.7763 & 0.5861 \\
+    \hline
+    NNCF+genres+avg & 0.7763 & 0.5861 \\[1ex]
     \hline
    \end{tabular}
 \captionof{table}{Results Comparison (RMSE \& MAE)}\label{comparison}

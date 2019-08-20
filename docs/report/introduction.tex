@@ -1,7 +1,7 @@
-Nowadays every customer is faced with a multitude of possible choices. Because of this it is very important that the user doesn't have to waste time manually filtering through the items to find relevant ones. Recommender system overcome this by providing personalized recommendations that suit a particular users tastes. They are present in many different websites such as google, amazon and netflix and help highly with user retention and satisfaction. I will focus on the problem of recommending movies and also building the underlying system and infrastructure required to server these recommendations.
+Nowadays every customer is faced with a multitude of possible choices. Because of this, it is very important that the user doesn't have to waste time manually filtering through the items to find relevant ones. Recommender systems overcome this by providing personalized recommendations that suit a particular users' tastes. They are present in many different websites such as google, amazon, and netflix and help highly with user retention and satisfaction. I will focus on the problem of recommending movies and also building the underlying system and infrastructure required to serve these recommendations.
 
 \subsection{Dataset}
-The datesets used as basis for the recommendation engine is the movie lens 20m dataset, put together by the Grouplens research group at the university of Minnesota. \citet{movielens}.
+The dataset used as the basis for the recommendation engine is the movie lens 20m dataset, put together by the Grouplens research group at the University of Minnesota \citet{movielens}.
 This is an explicit feedback dataset, where users manually assigned ratings to movies. The characteristics of this dataset are the following.
 \begin{itemize}
     \item 20000263 ratings on a scale of 0.5-5 in 0.5 increments
@@ -10,9 +10,9 @@ This is an explicit feedback dataset, where users manually assigned ratings to m
     \item 465564 tags about movies
 \end{itemize}
 The dataset is split into different files of which I am only using the ratings, movies and links files. 
-They are all available in comma separated value format.
+They are all available in comma-separated value format.
 The ratings file comprises of values for userId, movieId, rating, and timestamp.\ref{ratingsFile}. Timestamp remains unused while the other values are used together to perform collaborative filtering.
-The movies file is made up of movieId, title and genre. \ref{moviesFile} It is used for incorporating genre data into the model.
+The movies file is made up of movieId, title, and genre. \ref{moviesFile} It is used for incorporating genre data into the model.
 The links file contains movieId, imdbId and tmdbId. \ref{linksFile} This file provides imdbId and tmdbId used in web-scraping scripts to provide content for the demo web-app.
 
 \begin{center}

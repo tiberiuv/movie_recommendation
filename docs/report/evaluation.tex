@@ -1,23 +1,20 @@
-The evaluation section with results
+I have trained singular value decomposition and non-negative matrix factorization models on the same dataset using python surprise library in order to compare with my implementation (\citet{Surprise}). The models were optimized for 100 epochs each and 3 fold cross-validated. 
+The SVD model was run $\lambda$ of 0.05 for regularization and learning rate of 0.001. The NMF model trained used biases instead of baselines and regularization $\lambda$ of 1.
 
-\begin{figure}[h!]
-    \subfloat[RMSE plot]{\includegraphics[scale=0.5]{RMSE}\label{fig:RMSE}}
-    \hfill
-    \subfloat[MAE plot]{\includegraphics[scale=0.5]{MAE}\label{fig:MAE}}
-\end{figure}
+The result are in \ref{comparison} and show that even without side-information my model achieves a 4.17\% decrease in RMSE compared to SVD model and 5.26\% when compared to NMF model. Adding genres information reduces RMSE and MAE by 0.32\% and 0.97\% respectively when compared to basic NNCF. The final model incorporates genres and average ratings for movie and user. It improves on NNCF by 0.62\% RMSE and 1.66\% MAE.
 
 \begin{center}
-    \begin{tabular}{||c c c||} 
+    \begin{tabular}{||c c c||}
     \hline
-    Model & Test RMSE & Test MAE \\ [0.5ex] 
+    Model & Test RMSE & Test MAE \\ [0.5ex]
     \hline
-    SVD & 0.8152 & 0.6190 \\ 
+    SVD & 0.8152 & 0.6190 \\
     \hline
-    NMF & 0.8246 & 0.62876 \\
+    NMF & 0.8246 & 0.6287 \\
     \hline
-    NNCF & 0.7763 & 0.5861 \\
+    NNCF & 0.7812 & 0.5960 \\
     \hline 
-    NNCF+genres & 0.7763 & 0.5861 \\
+    NNCF+genres & 0.7787 & 0.5902 \\
     \hline
     NNCF+genres+avg & 0.7763 & 0.5861 \\[1ex]
     \hline

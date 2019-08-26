@@ -10,7 +10,7 @@ import os
 dirname = os.path.dirname(__file__)
 
 EPOCHS = 100
-# BATCH_SIZE = 2**10
+# BATCH_SIZE = 2**11
 BATCH_SIZE = 2**9
 
 LOCAL_RATING_PATH = os.path.join(dirname, '../../datasets/ml-20m/ratings.csv')
@@ -36,16 +36,13 @@ def main(job_dir, **args):
 	rating_data = load_data(RATING_PATH)
 	movie_data = load_data(MOVIE_PATH)
 
-	print(rating_data.sample(frac=1).head(5))
-	print(movie_data.sample(frac=1).head(5))
-
 	# plot_movie_rating_frequency(rating_data)
-	# model = NN(rating_data, movie_data, batch_size=BATCH_SIZE)
+	model = NN(rating_data, movie_data, batch_size=BATCH_SIZE)
 	# model.train_model(epochs=EPOCHS)
 
-	# model.load_model(os.path.join(dirname, '../model.h5'))
+	model.load_model(os.path.join(dirname, '../model.h5'))
 	# model.test_on_user(12413)
-        
+	model.get_test_ndcg()
 
 if __name__=='__main__':
 	parser = argparse.ArgumentParser()

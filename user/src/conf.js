@@ -1,14 +1,7 @@
-import env from 'dotenv/config'
+import 'dotenv/config'
 
 let default_config = {
-    PORT: 8081,
-    mysql: {
-        host: 'localhost',
-        user: 'root',
-        password: '',
-        database: 'dev',
-    },
-    secret: 'mysecretstring'
+    PORT: 8087,
 }
 let config = {
     development: {

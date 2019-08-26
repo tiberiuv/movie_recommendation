@@ -3,13 +3,19 @@ import helmet from 'helmet'
 import morgan from 'morgan'
 import 'dotenv/config'
 import bodyparser from 'body-parser'
+import cors from 'cors'
+
+const corsOptions = {
+    credentials: true,
+    origin: 'http://localhost:8080'
+}
 
 export default (app) => {
     if(process.env.NODE_ENV === 'prod') {
         app.use(compression())
         app.use(helmet())
     }
-    
+    app.use(cors(corsOptions))
     app.use(bodyparser.urlencoded({extended: true}))
     app.use(bodyparser.json())
     app.use( (req, res, next) => {

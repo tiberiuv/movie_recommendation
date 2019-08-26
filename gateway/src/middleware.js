@@ -1,10 +1,9 @@
-import compression from './compression'
-import helmet from './helmet'
-import morgan from './morgan'
-import express from './express'
-import cors from './cors'
-import cookieParser from 'cookie-parser'
-import './dotenv/config'
+import compression from 'compression'
+import helmet from 'helmet'
+import morgan from 'morgan'
+import express from 'express'
+import cors from 'cors'
+import 'dotenv/config'
 
 const corsOptions = {
     credentials: true,
@@ -25,5 +24,4 @@ export default (app) => {
         app.use(morgan('dev'))
     }
 
-    app.use(cookieParser())
 }

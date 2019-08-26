@@ -73,44 +73,25 @@
 \section{Recommendation Engine}
 \input{recommendation_engine.tex}
 
-\section{Evaluation}
+\section{Results}
 \input{evaluation.tex}
 
 \section{Conclusion}
+In this paper I have covered the best practices in deep learning and recommender systems. These include regularization, activation functions and principles of fast and stable multi-gpu training in keras. Furthermore I have implemented a demonstration web application that allows rating movies and serving recommendations. It is designed to be scalable and easy to extend in the future. I have also compared the DNN performance with traditional matrix factorization algorithms. The results show that deep learning can be used for solving the recommendation problem and it achieves better evaluation performance than the MF methods.
 \subsection{Future Work}
 Possible improvements to the system include the following.
 \begin{itemize}
-    \item Incorporate more content information into the system such as movie title, summary, and cast. This could be achieved using pre-trained word embeddings such as word2Vec or glove.
+    \item Incorporate more content information into the system such as movie title, summary, and cast. This could be achieved using pre-trained word embeddings such as word2Vec or glove (\citet{glove}).
     \item Add recurrent layers such as GRU or LSTM.
     \item Train a convolutional network on movie posters. Then incorporate said network into the CF model.
+    \item Use a deeper and wider architecture for network.
 \end{itemize}
+
+\section{Acknowledgements}
+Firstly, I would like to thank my supervisor, Dr Nikos Tzevelekos, for his support, guidance, and mentoring throughout the duration of this project. I also wish to thank the lecturers on the Big Data course at Queen Mary for supporting the development off skills and knowledge that were necessary to undertake the writing of this paper and implementation of accompanying project.
 
 \bibliography{bibliography}
 \newpage
 \appendix
-\begin{lstlisting}[language=Python]
-    class Generator(Sequence):
-        def __init__(self, data, user_avg_ratings, movie_avg_ratings, batch_size):
-            self.data = data
-            self.user_avg_ratings = user_avg_ratings
-            self.movie_avg_ratings = movie_avg_ratings
-            self.batch_size = batch_size
-
-        def __len__(self):
-            return int(np.floor(len(self.data) / float(self.batch_size)))
-
-        def __getitem__(self, idx):
-            batch = self.data.take(np.arange(idx * self.batch_size, (idx + 1) * self.batch_size, 1), 0)
-            userIds = batch.loc[:]['userEmbeddingId'].values
-            movieIds = batch.loc[:]['movieEmbeddingId'].values
-            genreEmbeddings = np.array(list(map(lambda x: np.array(x), batch.loc[:]['genreEmbedding'].values)))
-            ratings = batch.loc[:]['rating'].values
-
-            userAvgRatings = np.array([self.user_avg_ratings.get(i) for i in userIds.tolist()])
-            movieAvgRatings = np.array([self.movie_avg_ratings.get(i) for i in movieIds.tolist()])
-
-            # return [[userIds, movieIds, genreEmbeddings], ratings]
-            return [[userIds, userAvgRatings, movieIds, movieAvgRatings, genreEmbeddings], ratings]
-\end{lstlisting}
-
+\input{listings}
 \end{document}

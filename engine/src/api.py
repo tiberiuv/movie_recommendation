@@ -1,7 +1,7 @@
 from flask import request
 from engine.manage import app
 from flask import Blueprint
-
+from .NN import NN
 api = Blueprint('api', __name__)
 
 @api.route('/recommend/<str:userId>', methods=['GET'])

@@ -31,3 +31,13 @@ def load_a_model(path, model, mode):
 
     else:
         pass
+
+def calculate_dcg(ratings):
+    score = 0.0
+
+    for order, rating in enumerate(ratings):
+        score += float(rank)/np.log((order+2))
+    return score
+
+def calculate_ndcg(ratings, predictions):
+    return calculate_dcg(predictions) / calculate_dcg(ratings)

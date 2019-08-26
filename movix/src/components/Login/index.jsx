@@ -1,6 +1,9 @@
 import STYLES from './index.styl'
-import React, { Component } from 'react'
+
+import React, {Component, useState} from 'react'
 import connect from '../../connectRefetch'
+// import {connect} from 'react-refetch'
+
 import {TextField, Button} from '@material-ui/core'
 import CONFIG from '../../config'
 import {setToken} from '../Auth/index'
@@ -8,121 +11,134 @@ import {setToken} from '../Auth/index'
 const initialState = {
     email: {
         value: '',
-        validation: 'success',
+        validation: 'error',
         changed: false,
     },
     password: {
         value: '',
-        validation: 'success',
+        validation: 'error',
         changed: false,
     },
 }
 
-export class Login extends Component {
-    state = initialState
+export const Login = ({login, fetchLogin, signUp, fetchSignUp}) => {
+    const [form, setForm] = useState(initialState)
 
-    handleChange = ({target}) => {
+    const handleChange = ({target}) => {
         const {name, value} = target
-        const validation = this.validate(name, value)
-        this.setState({
-            [name]: {value, validation, changed: true}
+        const validation = validate(name, value)
+        setForm({
+            ...form,
+            [name]: {value, validation, changed: true},
         })
     }
 
-    validate = (item, value) => {
-        if(item === 'email') {return this.isValidEmail(value)}
-        else { return this.isValidPassword(value)}
+    const validate = (item, value) => {
+        if (item === 'email') {
+            return validateEmail(value)
+        } else {
+            return validatePassword(value)
+        }
     }
 
-    isValidEmail = (email) => {
+    const validateEmail = email => {
         var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
         return re.test(String(email).toLowerCase()) ? 'success' : 'error'
     }
 
-    isValidPassword = (password) => {
-        if(password.length <= 4) { return 'error'}
-        else if(password.length < 6) { return 'warning'}
-        else return 'success'
+    const validatePassword = password => {
+        if (password.length <= 4) {
+            return 'error'
+        } else if (password.length < 6) {
+            return 'warning'
+        } else return 'success'
     }
 
-    doLogin = async (e) => {
+    const doLogin = async e => {
         e.preventDefault()
-        const {login} = this.props
-        const {email, password} = this.state
 
-        login({email: email.value, password: password.value})
+        login({email: form.email.value, password: form.password.value})
     }
 
-    doRegister = (e) => {
+    const doRegister = e => {
         e.preventDefault()
-        const {signUp} = this.props
-        const {email, password} = this.state
-        
-        signUp({email: email.value, password: password.value})
+
+        signUp({email: form.email.value, password: form.password.value})
     }
 
-    isValid = (item) => {
-        return item.changed && item.validation == 'success'
-    }
+    const isValid = item => !item.changed || item.validation === 'success'
 
-    render() {
-        const{email, password} = this.state
-        const{fetchLogin, fetchSignUp} = this.props
-        
-        return (
-            <div className={STYLES.container}>
-                <form className={STYLES.form}>
-                    <TextField
-                        name='email'
-                        label='E-mail'
-                        value={email.value}
-                        margin='normal'
-                        onChange={this.handleChange}
-                    />
-                    <TextField
-                        name='password'
-                        label='Password'
-                        value={password.value}
-                        margin='normal'
-                        onChange={this.handleChange}
-                    />
-                    <div className={STYLES.submit}>
-                        <Button className={STYLES.button} color='primary' variant='contained' onClick={this.doLogin}>
-                            Login
-                        </Button>
-                        <Button className={STYLES.button} color='primary' variant='contained' onClick={this.doRegister}>
-                            Register
-                        </Button>
-                    </div>
-                    {fetchSignUp && fetchSignUp.fulfilled && fetchSignUp.value 
-                    && <span> Successful register </span> }
-                    {fetchLogin && fetchLogin.fulfilled && fetchLogin.value
-                    && <span> Successful logged-in </span> }
-                </form>
-            </div>
-        )
-    }
+    const isSubmitDisabled = () => !(form.email.validation === 'success' && form.password.validation === 'success')
+
+    return (
+        <div className={STYLES.container}>
+            <form className={STYLES.form}>
+                <TextField
+                    name="email"
+                    label="E-mail"
+                    type="Email"
+                    error={!isValid(form.email)}
+                    value={form.email.value}
+                    margin="normal"
+                    required
+                    onChange={handleChange}
+                />
+                <TextField
+                    name="password"
+                    label="Password"
+                    type="Password"
+                    error={!isValid(form.password)}
+                    value={form.password.value}
+                    margin="normal"
+                    required
+                    onChange={handleChange}
+                />
+                <div className={STYLES.submit}>
+                    <Button
+                        className={STYLES.button}
+                        color="primary"
+                        disabled={isSubmitDisabled()}
+                        variant="contained"
+                        onClick={doLogin}
+                    >
+                        Login
+                    </Button>
+                    <Button
+                        className={STYLES.button}
+                        color="primary"
+                        disabled={isSubmitDisabled()}
+                        variant="contained"
+                        onClick={doRegister}
+                    >
+                        Register
+                    </Button>
+                </div>
+                {fetchSignUp && fetchSignUp.fulfilled && fetchSignUp.value && <span> Successful register </span>}
+                {fetchLogin && fetchLogin.fulfilled && fetchLogin.value && <span> Successful logged-in </span>}
+            </form>
+        </div>
+    )
 }
 
 const connectedFetchers = connect(() => ({
-    signUp: (body) => ({
+    signUp: body => ({
         fetchSignUp: {
-            url: `${CONFIG.authApi}/signup`,
+            url: `${CONFIG.gatewayApi}/signup`,
             method: 'POST',
             force: true,
             body: JSON.stringify(body),
             then: token => setToken(token),
-        }
+        },
     }),
-    login: (body) => ({
+    login: body => ({
         fetchLogin: {
-            url: `${CONFIG.authApi}/login`,
+            url: `${CONFIG.gatewayApi}/login`,
             method: 'POST',
             force: true,
             body: JSON.stringify(body),
             then: token => setToken(token),
-        }
-    })
+        },
+    }),
 }))
 
 export default connectedFetchers(Login)

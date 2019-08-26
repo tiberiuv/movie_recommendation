@@ -1,16 +1,11 @@
-import {getUser, logIn} from './controllers/userController'
+import {getUser, logIn, putRating, getRatings} from './controllers/userController'
 import {checkToken} from './middleware'
 import AsyncMiddleware from './utils/asyncMiddleware'
 
 const routes = (app) => {
-    app.post('/user', AsyncMiddleware(getUser))
-}
-
-const index = (req, res) => {
-    return res.json({
-        success: true,
-        message: 'Index page'
-    })
+    // app.route('/user').get(AsyncMiddleware(getUser))
+    app.route('/ratings/:id').post(AsyncMiddleware(putRating))
+    app.route('/ratings/:id').get(AsyncMiddleware(getRatings))
 }
 
 export default routes

@@ -27,6 +27,7 @@ from keras import backend as K
 import keras
 from sklearn.preprocessing import MultiLabelBinarizer
 
+from utils import calculate_ndcg
 
 def root_mean_squared_error(y_true, y_pred):
     return K.sqrt(K.mean(K.square(y_pred - y_true)))
@@ -56,15 +57,9 @@ class NN(object):
         ratings['userEmbeddingId'] = ratings['userId'].map(usersMap).fillna(ratings['userId'])
         ratings['movieEmbeddingId'] = ratings['movieId'].map(moviesMap).fillna(ratings['movieId'])
 
-        # self.scaler = preprocessing.MinMaxScaler().fit(ratings['rating'].values.reshape(-1,1))
-        # ratings['rating'] = self.scaler.transform(ratings['rating'].values.reshape(-1,1))
-
         self.user_avg_ratings = {idx:x for idx,x in enumerate(ratings.groupby(['userEmbeddingId'])['rating'].mean().values.tolist())}
         self.movie_avg_ratings = {idx:x for idx,x in enumerate(ratings.groupby(['movieEmbeddingId'])['rating'].mean().values.tolist())}
-        # ratings['rating'] = self.scaler.inverse_transform(ratings['rating'].values.reshape(-1,1))
-        # self.movie_genre_embeddings =  
-        # print(self.user_avg_ratings[512], ratings[ratings['userEmbeddingId'] == 512])
-        # print(self.movie_avg_ratings[512], ratings[ratings['movieEmbeddingId'] == 512])
+
         shuffled_ratings = ratings.sample(frac=1., random_state=24)
 
         self.ratings = shuffled_ratings
@@ -140,55 +135,40 @@ class NN(object):
         dense_1 = Dropout(0.4)(dense_1)
         dense_1 = BatchNormalization()(dense_1)
 
-        # dense_2 = Dense(2048, **dense())(dense_1)
-        # dense_2 = LeakyReLU()(dense_2)
-        # # dense_2 = Dropout(0.3)(dense_2)
-        # dense_2 = BatchNormalization()(dense_2)
+        dense_2 = Dense(1024, **dense())(dense_1)
+        dense_2 = LeakyReLU()(dense_2)
+        dense_2 = Dropout(0.4)(dense_2)
+        dense_2 = BatchNormalization()(dense_2)
 
-        dense_3 = Dense(1024, **dense())(dense_1)
+        dense_3 = Dense(512, **dense())(dense_2)
         dense_3 = LeakyReLU()(dense_3)
         dense_3 = Dropout(0.4)(dense_3)
         dense_3 = BatchNormalization()(dense_3)
 
-        # dense_4 = Dense(1024, **dense())(dense_3)
-        # dense_4 = LeakyReLU()(dense_4)
-        # dense_4 = Dropout(0.3)(dense_4)
-        # dense_4 = BatchNormalization()(dense_4)
+        dense_4 = Dense(256, **dense())(dense_3)
+        dense_4 = LeakyReLU()(dense_4)
+        dense_4 = Dropout(0.4)(dense_4)
+        dense_4 = BatchNormalization()(dense_4)
 
-        dense_5 = Dense(512, **dense())(dense_3)
+        dense_5 = Dense(128, **dense())(dense_4)
         dense_5 = LeakyReLU()(dense_5)
         dense_5 = Dropout(0.4)(dense_5)
         dense_5 = BatchNormalization()(dense_5)
 
-        dense_6 = Dense(256, **dense())(dense_5)
-        dense_6 = LeakyReLU()(dense_6)
-        dense_6 = Dropout(0.4)(dense_6)
-        dense_6 = BatchNormalization()(dense_6)
-
-        dense_7 = Dense(128, **dense())(dense_6)
-        dense_7 = LeakyReLU()(dense_7)
-        dense_7 = Dropout(0.4)(dense_7)
-        dense_7 = BatchNormalization()(dense_7)
-
-        out = Dense(1)(dense_7)
-        # out = Lambda(lambda x: x * (5-1) + 1)(out)
+        out = Dense(1)(dense_5)
 
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
         set_session(tf.Session(config=config))
 
         gpus = os.environ.get('CUDA_VISIBLE_DEVICES', '').split(',')
-        # self.model = Model(inputs = [user, movie], outputs = out)
+
         self.model = Model(inputs = [user, user_avg_rating, movie, movie_avg_rating, genres], outputs = out)
         print(self.model.summary())
 
-        # adam = Adam(lr=2e-4, epsilon=1e-4, clipnorm=1.0, clipvalue=0.5) 
-        adam = Adam(lr=2e-4, epsilon=1e-4)
         nadam = Nadam(lr=2e-4, epsilon=1e-4)
-        # lr 0.0002
         if(len(gpus) > 1 ):
             with tf.device("/cpu:0"):
-                # self.s_model = Model(inputs = [user, movie], outputs = out)
                 self.s_model = Model(inputs = [user, user_avg_rating, movie, movie_avg_rating, genres], outputs = out)
                 self.model = multi_gpu_model(self.s_model, gpus=len(gpus))
                 self.batch_size = self.batch_size * len(gpus)
@@ -227,9 +207,6 @@ class NN(object):
         
     def save_history(self, history):
         pd.DataFrame(history).to_csv('train_history/' + str(datetime.now()) + '.csv')
-        # with open('history.txt', 'a+') as file:
-        #     file.write('\n' + str(datetime.now()) + ',')
-        #     [file.write(k + ',' + ','.join(v)) for k,v in history.items()]
 
     def test_model(self):
         # Evaluate the model on the test data using `evaluate`
@@ -256,13 +233,43 @@ class NN(object):
         ratings = self.ratings
         movies = self.movies
         user_embedding_id = ratings[ratings['userId'] == uid]['userEmbeddingId'].drop_duplicates().values
-        cadidates = ratings[~ratings['movieId'].isin(ratings['userId'] == uid)][['movieEmbeddingId']].drop_duplicates()
-        user_embedding_ids = [user_embedding for _ in range(0,len(cadidates))]
 
-        inputs = [user_embedding_ids, cadidates]
+        user_avg_rating = self.user_avg_ratings.get(user_embedding_id)
+
+        cadidates = ratings[~ratings['movieId'].isin(ratings['userId'] == uid)]
+    
+        movieEmbIds = cadidates[['movieEmbeddingId']].drop_duplicates()
+        movieAvgRatings = np.array([self.movie_avg_ratings.get(i) for i in movieEmbIds.tolist()])
+        genreEmbeddings = np.array(list(map(lambda x: np.array(x), candidates.loc[:]['genreEmbedding'].values)))
+        userEmbeddingIds = [user_embedding for _ in range(0,len(movieEmbIds))]
+
+        userAvgRatings = [user_avg_rating for _ in range(0, len(movieEmbIds))]
+        movieAvgRatings = [self.movie_avg_ratings.get(idx) for idx in movieEmbIds]
+
+        inputs = [user_embedding_ids, userAvgRatings, movieEmbIds, movieAvgRatings, genreEmbeddings]
         predictions = self.model.predict(inputs, 2**10)
 
-        return predictions.squeeze()
+        return predictions.squeeze().sort(reverse=True)[0:numRatings]
+
+    
+    def predict_bulk(self, ids, numRatings):
+        predictions = []
+        for idx in ids:
+            predictions.append(self.predict(idx, numRatings))
+        return predictions
+    
+    def get_test_ndcg(self):
+        ratings = self.ratings
+        ids = self.test['userId'].drop_duplicates().take(500).values
+
+        all_users_ndcg = 0.0
+        for idx in ids:
+            predictions = self.predict(idx, 10)
+            user_ratings = ratings[ratings['userId'] == uid]['rating'].sort_values(ascending=False).take(10)
+            all_users_ndcg += calculate_ndcg(user_ratings, predictions)
+
+        print('ndcg', all_users_ndcg/len(ids))
+        return all_users_ndcg/len(ids)
     
     def test_on_user(self, uid):
         ratings = self.ratings

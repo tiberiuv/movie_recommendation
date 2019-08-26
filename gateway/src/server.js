@@ -1,4 +1,4 @@
-import express from './express'
+import express from 'express'
 import routes from './routes'
 import config from './conf'
 import middlewareConfig from './middleware'

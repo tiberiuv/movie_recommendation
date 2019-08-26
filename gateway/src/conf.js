@@ -1,7 +1,7 @@
-import './dotenv/config'
+import 'dotenv/config'
 
 let default_config = {
-    PORT: 8080,
+    PORT: 8085,
     mysql: {
         host: 'localhost',
         user: 'root',

@@ -1,10 +1,13 @@
-import React, {Component} from 'react'
-import {connect} from 'react-refetch'
-import MovieList from '../MovieList/index'
-import {CircularProgress} from '@material-ui/core'
-import CONFIG from '../../config'
-
 import STYLES from './home.styl'
+
+import React, {Component} from 'react'
+import connect from '../../connectRefetch'
+import {CircularProgress} from '@material-ui/core'
+
+import CONFIG from '../../config'
+import MovieList from '../MovieList/index'
+import withProtected from '../Auth/protectedComponent'
+
 export class Home extends Component {
     state = {
         query: {
@@ -86,24 +89,22 @@ export class Home extends Component {
     }
 }
 
-const withFetchers = connect(() => {
-    return {
-        getMovies: (query, cb) => ({
-            moviesFetch: {
-                url: `${CONFIG.movieApi}/search`,
-                method: 'POST',
-                body: JSON.stringify(query),
-                then: cb,
-                force: true,
-            },
-        }),
-        getUser: id => ({
-            userFetch: {
-                url: `${CONFIG.userApi}/user/${id}`,
-                method: 'GET',
-            },
-        }),
-    }
-})
+const withFetchers = connect(() => ({
+    getMovies: (query, cb) => ({
+        moviesFetch: {
+            url: `${CONFIG.movieApi}/search`,
+            method: 'POST',
+            body: JSON.stringify(query),
+            then: cb,
+            force: true,
+        },
+    }),
+    getUser: id => ({
+        userFetch: {
+            url: `${CONFIG.userApi}/user/${id}`,
+            method: 'GET',
+        },
+    }),
+}))
 
 export default withFetchers(Home)

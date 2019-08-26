@@ -3,6 +3,12 @@ import helmet from 'helmet'
 import morgan from 'morgan'
 import 'dotenv/config'
 import express from 'express'
+import cors from 'cors'
+
+const corsOptions = {
+    credentials: true,
+    origin: 'http://localhost:8080'
+}
 
 export default (app) => {
     if(process.env.NODE_ENV === 'prod') {
@@ -10,6 +16,7 @@ export default (app) => {
         app.use(helmet())
     }
     
+    app.use(cors(corsOptions))
     app.use(express.urlencoded({extended: true}))
     app.use(express.json())
     app.use( (req, res, next) => {

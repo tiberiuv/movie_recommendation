@@ -78,8 +78,6 @@ const createCast = async (member) =>
 
 
 const updateCast = async (memberDoc, member) => {
-    // console.log('Current: ',memberDoc.toObject())
-    // console.log('New: ', member)
     if(member.roles && member.roles.length > 0) {
         await memberDoc.updateOne(
             {
@@ -89,7 +87,6 @@ const updateCast = async (memberDoc, member) => {
                 }
             },
         )
-        // console.log(result)
     }
     return memberDoc
 }
@@ -105,11 +102,6 @@ const updateOrCreateCast = async (cast) => {
                 !member ? createCast(cast[idx]) : updateCast(member, cast[idx])
             )
         )
-        // return await Promise.all(cast
-        //     .map(async (cm,idx) => 
-        //         await CastMember.findOne({name: cm.name})
-        //             .then(member => !member ? createCast(cast[idx]) : updateCast(member, cast[idx]))
-        //     ))
     } catch (err) {
         console.log(err)
     }

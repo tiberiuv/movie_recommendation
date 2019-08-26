@@ -1,17 +1,19 @@
-import argon from './argon2'
-import jwt from './jsonwebtoken'
+import argon from 'argon2'
+import jwt from 'jsonwebtoken'
 import User from '../models/usersModel'
 import fs from 'fs'
 import {sendError, sendSuccess, throwError, throwIf} from '../utils/errorHandling'
+
 const privateKEY = fs.readFileSync(__dirname +'/../../keys/jwtRS512.key', 'utf8')
 const publicKey = fs.readFileSync(__dirname +'/../../keys/jwtRS512.key.pub', 'utf8')
+console.log(publicKey)
 
 const SIGN_ALGORITHM = 'RS512'
 let signOptions = {
     issuer: 'gateway',
     subject: '',
     audience: 'moviesWebsite',
-    expiresIn: '24h',
+    // expiresIn: '24h',
     algorithm: SIGN_ALGORITHM,
 }
 
@@ -25,42 +27,42 @@ export const health = (_, res) => {
 export const signUp = async (req, res) => {
     try {
         const {email, password} = req.body
-        const encryptedToken = req.cookies['gateway']
-
+        const currentToken = req.headers['authorization']
         if (!email || !password) 
             throwError(400, 'Incorrect Request','Email or password is missing')()
 
-        const [, hashedPass] = await Promise.all([
-            await User
-                .findOne({email: email})
-                .then(
-                    throwIf(r => r, 409, 'Incorrect data', 'Email already in use!'),
-                    throwError(500, 'Mongodb error')
-                ),
-            await argon
-                .hash(password)
-                .then(
-                    throwIf(r => !r, 500, 'Argon error'),
-                    throwError(500, 'Mongodb error')
-                )
-        ])
-        const verifiedToken = verifyJWT(encryptedToken)
-        const user = verifiedToken 
-            ? await User.findById(verifiedToken.id).updateOne({
-                $set: {email, password},
-            }) 
-            : await User
+        if(currentToken) {
+            mergeSession(currentToken, email, password, res)
+        } else {
+            const [, hashedPass] = await Promise.all([
+                await User
+                    .findOne({email: email})
+                    .then(
+                        throwIf(r => r, 409, 'Incorrect data', 'Email already in use!'),
+                        throwError(500, 'Mongodb error')
+                    ),
+                await argon
+                    .hash(password)
+                    .then(
+                        throwIf(r => !r, 500, 'Argon error'),
+                        throwError(500, 'Mongodb error')
+                    )
+            ])
+            const user = await User
                 .create({email: email, password: hashedPass})
                 .then(
                     throwIf(r => !r, 500, 'Mongo error', 'User not created'), 
-                    throwError(500, 'Mongo error'))
-
-        signOptions = {...signOptions, subject: email}
-
-        const token = jwt.sign(makePayloadAuthenticated(user._id), privateKEY, signOptions)
-        if(!token) throwError(500, 'Jwt sign error', 'Something went wrong with signing the jwt')
-        sendSuccess(res)(token)
+                    throwError(500, 'Mongo error')
+                )
+    
+            signOptions = {...signOptions, subject: email}
+    
+            const token = jwt.sign(makePayloadAuthenticated(user._id), privateKEY, signOptions)
+            if(!token) throwError(500, 'Jwt sign error', 'Something went wrong with signing the jwt')
+            sendSuccess(res)(token)   
+        }
     } catch(err) {
+        console.log(err)
         sendError(res)(err)
     }
 }
@@ -92,21 +94,39 @@ export const logIn = async (req, res) => {
     }
 }
 
+const mergeSession = async (token, email, password, res) => {
+    try {
+        const verifiedToken = verifyJWT(token)
+        const user = await User
+            .findById(verifiedToken.id)
+            .updateOne({
+                $set: {email, password},
+            })
+            .then(throwIf(r => !r, 404, 'Not found', 'User not found'))
+        sendSuccess(res)(user)
+    } catch (err) {
+        sendError(res)(err)
+    }
+}
+
 const verifyJWT = (token) => {
     try{
-        const decryptedToken = jwt.verify(token, publicKey, {algorithms: [SIGN_ALGORITHM]})
+        const decryptedToken = jwt.verify(token, publicKey, {algorithm: SIGN_ALGORITHM})
         return decryptedToken
     } catch (err) {
         throwError(401, 'Invalid token')
     }
 }
 
+
 export const createSession = async (req, res) => {
     try {
         const user = await User.create({})
         const token = jwt.sign(makePayload(user._id), privateKEY, signOptions)
+        console.log(token)
         sendSuccess(res)(token)
     } catch (err) {
+        console.log(err)
         sendError(res)(err)
     }
 }

@@ -6,6 +6,7 @@ const UserSchema = new Schema ({
         type: String,
         unique: true,
         // required: [true, 'Email is required!'],
+        sparse: true,
         trim: true,
         validate: {
             validator(email) {
@@ -18,6 +19,7 @@ const UserSchema = new Schema ({
     password: {
         type: String,
         // required: [true, 'Password is required!'],
+        sparse: true,
         trim: true,
         minlength: [6, 'Password need to be longer!'],
     },

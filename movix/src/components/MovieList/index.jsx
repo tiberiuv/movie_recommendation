@@ -1,13 +1,19 @@
 import STYLES from './index.styl'
+
 import React, {useState} from 'react'
-import Movie from './movie'
-import MovieMore from '../Movie'
-import connect from '../../connectRefetch'
 import withInfiniteScroll from '../InfiniteScroll'
 import {Popper, CircularProgress} from '@material-ui/core'
+
+import Movie from './movie'
+import {getUser} from '../Auth'
+import MovieMore from '../Movie'
+import connect from '../../connectRefetch'
 import CONFIG from '../../config'
 
-export const MovieList = ({movies, openMovies, isLoading, handleClickMovie}) => {
+export const MovieList = ({movies, openMovies, isLoading, handleClickMovie, rateMovieFetch, userRatings}) => {
+    const handleRatingChange = (rating, movieId) => {
+        rateMovieFetch({rating, movieId})
+    }
     const isOpen = id => openMovies.has(id)
     return (
         <div className={STYLES.container}>
@@ -21,7 +27,7 @@ export const MovieList = ({movies, openMovies, isLoading, handleClickMovie}) => 
                             posterUrl={movie.posterUrl}
                             summary={movie.summary}
                             cast={movie.castMembers}
-                            onClick={() => handleClickMovie(movie.movieId)}
+                            handleRatingChange={rating => handleRatingChange(rating, movie.movieId)}
                         />
                         <Popper id={movie.movieId} open={isOpen(movie.movieId)}>
                             <MovieMore />
@@ -34,4 +40,25 @@ export const MovieList = ({movies, openMovies, isLoading, handleClickMovie}) => 
     )
 }
 
-export default withInfiniteScroll(MovieList)
+const withFetchers = connect(() => {
+    const uri = `${CONFIG.userApi}/ratings/${getUser()}`
+    return {
+        rateMovieFetch: body => ({
+            rated: {
+                url: uri,
+                method: 'POST',
+                force: true,
+                body: JSON.stringify(body),
+            },
+        }),
+        movieRatingsFetch: () => ({
+            userRatings: {
+                url: uri,
+                force: true,
+            },
+        }),
+        userRatings: uri,
+    }
+})
+
+export default withInfiniteScroll(withFetchers(MovieList))

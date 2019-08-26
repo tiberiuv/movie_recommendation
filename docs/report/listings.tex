@@ -1,0 +1,169 @@
+\begin{lstlisting}[language=Python, caption=Generator class and usage, basicstyle=\tiny, label=generator]
+class Generator(Sequence):
+    def __init__(self, data, user_avg_ratings,
+            movie_avg_ratings, batch_size):
+        self.data = data
+        self.user_avg_ratings = user_avg_ratings
+        self.movie_avg_ratings = movie_avg_ratings
+        self.batch_size = batch_size
+
+    def __len__(self):
+        return int(np.floor(len(self.data) / float(self.batch_size)))
+
+    def __getitem__(self, idx):
+        batch = self.data.take(np.arange(idx * self.batch_size, (idx + 1) * self.batch_size, 1), 0)
+        userIds = batch.loc[:]['userEmbeddingId'].values
+        movieIds = batch.loc[:]['movieEmbeddingId'].values
+        genreEmbeddings = np.array(list(map(lambda x: np.array(x), batch.loc[:]['genreEmbedding'].values)))
+        ratings = batch.loc[:]['rating'].values
+
+        userAvgRatings = np.array([self.user_avg_ratings.get(i) for i in userIds.tolist()])
+        movieAvgRatings = np.array([self.movie_avg_ratings.get(i) for i in movieIds.tolist()])
+
+        return [[userIds, userAvgRatings, movieIds, movieAvgRatings, genreEmbeddings], ratings]
+    
+train_gen = Generator(self.train, self.user_avg_ratings, self.movie_avg_ratings, self.batch_size)
+validate_gen = Generator(self.test, self.user_avg_ratings, self.movie_avg_ratings, self.batch_size)
+
+history = self.model.fit_generator(
+    generator=train_gen,
+    validation_data=validate_gen,
+    epochs=epochs,
+    callbacks=_callbacks,
+    workers=12,
+    max_queue_size=200,
+    shuffle=True,
+    use_multiprocessing=True
+)
+\end{lstlisting}
+    
+\begin{lstlisting}[caption=Movie Schema, basicstyle=\tiny, label=movie_schema]
+const MovieSchema = new Schema ({
+    movieId: {
+        type: String,
+        unique: true,
+        required: [true, 'Id is required!'],
+        trim: true,
+    },
+    title: {
+        type: String,
+        required: [true, 'Title is required!'],
+        trim: true,
+    },
+    genres: {
+        type: String,
+        required: [true, 'Genres is required!'],
+        trim: true,
+        get: genreToArray,
+    },
+    imdbId: {
+        type: String,
+        unique: true,
+    },
+    tmdbId: {
+        type: String,
+        unique: true,
+    },
+    posterUrl: {
+        type: String,
+    },
+    production: {
+        type: Schema.Types.ObjectId,
+        ref: 'Production'
+    },
+    castMembers: {
+        type: [Schema.Types.ObjectId]
+    },
+    summary: {
+        type: String,
+    },
+
+}, {autoIndex: false})
+
+export default mongoose.model('Movie', MovieSchema)
+
+\end{lstlisting}
+
+\begin{lstlisting}[caption=Movie api routes, basicstyle=\tiny, label=movie_schema]
+const routes = (app) => {
+    app.route('/health').get(asyncMiddleware(health))
+    app.route('/:id').get(asyncMiddleware(getMovie))
+    app.route('/search').post(asyncMiddleware(searchMovies))
+}
+\end{lstlisting}
+
+\begin{lstlisting}[caption=Kubernetes Deployment Yaml, basicstyle=\tiny, label=deployment]
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  progressDeadlineSeconds: 120
+  template:
+    metadata:
+      name: gateway
+      labels:
+        app: gateway
+    spec:
+      hostAliases:
+      - ip: "10.0.2.2"
+        hostnames:
+          - "api.gateway.com"
+      containers:
+      - name: gateway
+        resources:
+          requests:
+            memory: "64Mi"
+          limits:
+            memory: "256Mi"
+        image: authentication:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080
+\end{lstlisting}
+
+\begin{lstlisting}[caption=Kubernetes Service Yaml, basicstyle=\tiny, label=service]
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+spec:
+  type: NodePort
+  selector:
+    app: gateway
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+    protocol: TCP
+\end{lstlisting}
+
+\begin{lstlisting}[caption=DockerFile Example, basicstyle=\tiny, label=dockerFile]
+FROM node:10-alpine
+
+WORKDIR /usr/src/app
+
+RUN npm install --global yarn
+
+COPY package*.json ./
+
+RUN apk add --no-cache --virtual .gyp \
+        python \
+        make \
+        g++ \
+    && yarn install \
+    && apk del .gyp
+
+
+COPY . .
+
+EXPOSE 8080
+
+RUN yarn run build
+
+CMD [ "yarn", "serve" ]
+\end{lstlisting}

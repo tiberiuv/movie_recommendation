@@ -1,6 +1,5 @@
-import protectedComponent from './protectedComponent'
 import jwt from 'jsonwebtoken'
-import config from '../../config'
+import CONFIG from '../../config'
 
 // const sessionLevel = {
 //     0: 'noSession',
@@ -8,12 +7,23 @@ import config from '../../config'
 //     2: 'sessionOnly'
 // }
 
-const getSessionLevel = () => {
-    const publicKey = config.get('publicKey')
+export const getSessionLevel = () => {
+    // const publicKey = unescape(encodeURIComponent(CONFIG['publicKey']))
+    const publicKey = decodeURIComponent(escape(CONFIG['publicKey']))
     const token = getToken()
-    const decodedJwt = jwt.verify(token, publicKey)
-    console.log(decodedJwt)
-    return decodedJwt.get('authenticated', 'noSession') ? 'authenticated' : 'sessionOnly'
+
+    console.log(token)
+    console.log(publicKey)
+
+    try {
+        const decodedJwt = jwt.verify(token, publicKey, {algorithm: 'RS512'})
+
+        console.log(decodedJwt)
+        return decodedJwt.get('authenticated', 'noSession') ? 'authenticated' : 'sessionOnly'
+    } catch (err) {
+        console.log(err)
+        if (!token) return 'noSession'
+    }
 }
 
 export const setToken = jwtToken => {
@@ -24,12 +34,20 @@ export const getToken = () => {
     return localStorage.getItem('jwt')
 }
 
+export const getUser = () => {
+    const token = getToken()
+    console.log(token)
+    const parsedJwt = jwt.decode(token, {algorithm: 'RS512'})
+    console.log(parsedJwt)
+    return parsedJwt['id']
+}
+
 export const logout = () => {
-    return localStorage.removeItem('jwt')
+    const loggedOutToken = getToken()
+    delete loggedOutToken['authenticated']
+    localStorage.setItem('jwt', loggedOutToken)
 }
 
 export const checkToken = () => {
     return getToken() ? true : false
 }
-
-export default protectedComponent

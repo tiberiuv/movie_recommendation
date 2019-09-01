@@ -7,6 +7,7 @@ import {CircularProgress} from '@material-ui/core'
 import CONFIG from '../../config'
 import MovieList from '../MovieList/index'
 import withProtected from '../Auth/protectedComponent'
+import {getUser} from '../Auth'
 
 export class Home extends Component {
     state = {
@@ -18,6 +19,7 @@ export class Home extends Component {
         hasMore: true,
         movies: [],
         openMovies: new Set(),
+        ratings: [],
     }
 
     componentWillMount = () => {
@@ -66,8 +68,9 @@ export class Home extends Component {
 
     render() {
         const {movies, openMovies} = this.state
-        const {moviesFetch} = this.props
+        const {moviesFetch, movieRatingsFetch, userRatings} = this.props
         const isLoading = moviesFetch && (moviesFetch.pending || moviesFetch.refreshing)
+        const ratings = userRatings && userRatings.fulfilled && userRatings.value
         return (
             <React.Fragment>
                 <div className={STYLES.container}>
@@ -79,6 +82,8 @@ export class Home extends Component {
                             isLoading={isLoading}
                             onPaginatedSearch={() => this.loadNextMovies()}
                             refreshing={moviesFetch && moviesFetch.refreshing}
+                            onRateMovie={movieRatingsFetch}
+                            ratings={ratings}
                         />
                     ) : (
                         <CircularProgress className={STYLES.progress} color="primary" />
@@ -99,12 +104,14 @@ const withFetchers = connect(() => ({
             force: true,
         },
     }),
-    getUser: id => ({
-        userFetch: {
-            url: `${CONFIG.userApi}/user/${id}`,
-            method: 'GET',
+    movieRatingsFetch: () => ({
+        userRatings: {
+            url: `${CONFIG.userApi}/ratings/${getUser()}`,
+            force: true,
+            refreshing: true,
         },
     }),
+    userRatings: `${CONFIG.userApi}/ratings/${getUser()}`,
 }))
 
 export default withFetchers(Home)

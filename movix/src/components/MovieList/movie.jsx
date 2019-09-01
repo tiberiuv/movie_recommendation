@@ -1,15 +1,15 @@
 import STYLES from './index.styl'
 import React, {useState} from 'react'
-import {Typography, Card, CardMedia, CardContent, CardActionArea, Icon} from '@material-ui/core'
+import {Typography, Card, CardMedia, CardContent, CardActionArea, Icon, CardActions} from '@material-ui/core'
 import Rating from 'react-rating'
 import connect from '../../connectRefetch'
 
 export const Movie = ({title, posterUrl, genres, summary, onClick, handleRatingChange, rating}) => {
-    const displayGenres = () => genres.replace('|', ' ')
+    const displayGenres = () => genres.split('|').join(' ')
     return (
         <Card onClick={onClick}>
             <CardMedia className={STYLES.poster} image={posterUrl} title={title} />
-            <CardContent>
+            <CardContent className={STYLES.content}>
                 <Typography gutterBottom variant="h5" component="h2">
                     {title}
                 </Typography>
@@ -17,8 +17,9 @@ export const Movie = ({title, posterUrl, genres, summary, onClick, handleRatingC
                 <br />
                 <Typography component="p"> {displayGenres()} </Typography>
                 <Rating
+                    className={STYLES.rating}
                     onChange={handleRatingChange}
-                    initialRating={rating}
+                    initialRating={rating && rating.rating}
                     emptySymbol={
                         <Icon className={STYLES.starIcon} fontSize="large">
                             star_border

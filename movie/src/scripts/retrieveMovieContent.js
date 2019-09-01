@@ -55,11 +55,6 @@ const retrievePosterAndSummary = async (id) => {
     try {
         
         const summary = $(`.summary_text`).text().trim()
-        // const directors = cheerio.load(html)('[itemprop=name]')[0]
-        //     .text()
-        //     .trim()
-        //     .split(',')
-        // console.log(directors)
         let posterElement = undefined
         try{
             posterElement = cheerio.load(html)(".poster >a:nth-child(1) >img:nth-child(1)")[0].attribs.src.split("@._")[0] + "@._V1_QL50.jpg"

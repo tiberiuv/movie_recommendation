@@ -3,7 +3,7 @@ import Navbar from './components/Navbar/index'
 
 import MainRoutes from './routes'
 
-export const App = ({sessionFetch}) => (
+export const App = () => (
     <div className="root">
         <Navbar />
         <MainRoutes />

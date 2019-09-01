@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import {Route} from 'react-router-dom'
+import {Route, Switch} from 'react-router-dom'
 import React, {useEffect} from 'react'
 import {CircularProgress} from '@material-ui/core'
 
@@ -9,6 +9,7 @@ import Movie from './components/Movie'
 import connect from './connectRefetch'
 import CONFIG from './config'
 import {setToken, getToken} from './components/Auth'
+import NotFound from './components/NotFound.jsx'
 
 const MainRoutes = ({sessionFetch}) => {
     useEffect(() => {
@@ -18,11 +19,12 @@ const MainRoutes = ({sessionFetch}) => {
     }, [])
 
     return !!getToken() ? (
-        <React.Fragment>
+        <Switch>
             <Route exact path="/" component={Home} />
             <Route path="/login" component={Login} />
             <Route path="/movies" component={Movie} />
-        </React.Fragment>
+            <Route component={NotFound} />
+        </Switch>
     ) : (
         <CircularProgress className="root" color="primary" />
     )
@@ -32,7 +34,7 @@ const withFetchers = connect(() => ({
     sessionFetch: cb => ({
         session: {
             url: `${CONFIG.gatewayApi}/session`,
-            then: token => setToken(token) && console.log(token) && cb,
+            then: token => setToken(token) && cb,
         },
     }),
 }))

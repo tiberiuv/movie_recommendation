@@ -10,11 +10,21 @@ import MovieMore from '../Movie'
 import connect from '../../connectRefetch'
 import CONFIG from '../../config'
 
-export const MovieList = ({movies, openMovies, isLoading, handleClickMovie, rateMovieFetch, userRatings}) => {
+export const MovieList = ({
+    movies,
+    openMovies,
+    isLoading,
+    handleClickMovie,
+    rateMovieFetch,
+    userRatings,
+    ratings,
+    onRateMovie,
+}) => {
     const handleRatingChange = (rating, movieId) => {
-        rateMovieFetch({rating, movieId})
+        rateMovieFetch({rating, movieId}, onRateMovie)
     }
     const isOpen = id => openMovies.has(id)
+
     return (
         <div className={STYLES.container}>
             {movies
@@ -27,6 +37,7 @@ export const MovieList = ({movies, openMovies, isLoading, handleClickMovie, rate
                             posterUrl={movie.posterUrl}
                             summary={movie.summary}
                             cast={movie.castMembers}
+                            rating={ratings && ratings.find(x => x.movieId === movie.movieId)}
                             handleRatingChange={rating => handleRatingChange(rating, movie.movieId)}
                         />
                         <Popper id={movie.movieId} open={isOpen(movie.movieId)}>
@@ -43,21 +54,15 @@ export const MovieList = ({movies, openMovies, isLoading, handleClickMovie, rate
 const withFetchers = connect(() => {
     const uri = `${CONFIG.userApi}/ratings/${getUser()}`
     return {
-        rateMovieFetch: body => ({
+        rateMovieFetch: (body, cb) => ({
             rated: {
                 url: uri,
                 method: 'POST',
                 force: true,
                 body: JSON.stringify(body),
+                then: cb,
             },
         }),
-        movieRatingsFetch: () => ({
-            userRatings: {
-                url: uri,
-                force: true,
-            },
-        }),
-        userRatings: uri,
     }
 })
 

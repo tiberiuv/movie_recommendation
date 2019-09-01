@@ -8,17 +8,12 @@ import CONFIG from '../../config'
 // }
 
 export const getSessionLevel = () => {
-    // const publicKey = unescape(encodeURIComponent(CONFIG['publicKey']))
     const publicKey = decodeURIComponent(escape(CONFIG['publicKey']))
     const token = getToken()
-
-    console.log(token)
-    console.log(publicKey)
 
     try {
         const decodedJwt = jwt.verify(token, publicKey, {algorithm: 'RS512'})
 
-        console.log(decodedJwt)
         return decodedJwt.get('authenticated', 'noSession') ? 'authenticated' : 'sessionOnly'
     } catch (err) {
         console.log(err)
@@ -36,9 +31,7 @@ export const getToken = () => {
 
 export const getUser = () => {
     const token = getToken()
-    console.log(token)
     const parsedJwt = jwt.decode(token, {algorithm: 'RS512'})
-    console.log(parsedJwt)
     return parsedJwt['id']
 }
 

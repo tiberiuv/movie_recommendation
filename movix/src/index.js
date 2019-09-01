@@ -3,17 +3,18 @@ import {render} from 'react-dom'
 import App from './App'
 import './index.css'
 import * as serviceWorker from './serviceWorker'
-import {BrowserRouter} from 'react-router-dom'
-import "core-js/stable";
-import "regenerator-runtime/runtime";
+import {Router} from 'react-router'
+import {createBrowserHistory} from 'history'
+import 'core-js/stable'
+import 'regenerator-runtime/runtime'
+
+const history = createBrowserHistory({forceRefresh: true})
 
 render(
-    (
-        <BrowserRouter>
-            <App/>
-        </BrowserRouter>
-    )
-    ,document.getElementById('root')
+    <Router history={history}>
+        <App />
+    </Router>,
+    document.getElementById('root'),
 )
 
 // If you want your app to work offline and load faster, you can change

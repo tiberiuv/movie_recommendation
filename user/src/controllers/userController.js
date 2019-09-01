@@ -7,9 +7,11 @@ export const getRatings = async (req, res) => {
         const userId = req.params.id
         const user = await User
             .findById(userId)
+            .populate('ratings')
             .then(
                 throwIf(r => !r, 404, 'Not found', 'User not found')
             )
+        console.log(user.ratings)
         sendSuccess(res)(user.ratings)
     } catch (err) {
         sendError(res)(err)
@@ -19,9 +21,9 @@ export const getRatings = async (req, res) => {
 export const putRating = async (req, res) => {
     try {
         const userId = req.params.id
-        const {rating, movieId} = req.body
+        const {rating: ratingValue, movieId} = req.body
 
-        if(!(rating || movieId)) throwError(400, 'Bad request', 'Missing id')
+        if(!(ratingValue || movieId)) throwError(400, 'Bad request', 'Missing id')
 
         let user = await User
             .findById(userId)
@@ -29,14 +31,20 @@ export const putRating = async (req, res) => {
         if(!user) {
             user = await User.create({_id: userId})
         }
-        const {_id: ratingId} = await Rating.create({movieId, rating, userId})
+        let rating = await Rating.findOne({movieId: movieId, userId: userId})
+        if(rating){
+            rating.rating = ratingValue
+            await rating.save()
+        } else {
+            rating = await Rating.create({movieId, rating: ratingValue, userId})
             .then(
                 throwIf(r => !r, 500, 'Mongo error', 'Rating not created'), 
                 throwError(500, 'Mongo error')
             )
-        user.ratings.push(ratingId)
-        user.save()
-        
+            user.ratings.push(rating._id)
+            await user.save()
+        }
+        console.log('Rating', rating)
         sendSuccess(res)(user.ratings)
     } catch (err) {
         sendError(res)(err)

@@ -1,6 +1,7 @@
 import sys
 import os
 
+from timeit import default_timer as timer
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -230,26 +231,36 @@ class NN(object):
         user_embeddings = self.model.get_weights('user_embedding')
 
     def predict(self, uid, numRatings):
+        start = timer()
         ratings = self.ratings
         movies = self.movies
         user_embedding_id = ratings[ratings['userId'] == uid]['userEmbeddingId'].drop_duplicates().values
 
-        user_avg_rating = self.user_avg_ratings.get(user_embedding_id)
+        user_avg_rating = self.user_avg_ratings.get(user_embedding_id.item(0))
 
-        cadidates = ratings[~ratings['movieId'].isin(ratings['userId'] == uid)]
+        candidates = ratings[~ratings['movieId'].isin(ratings['userId'] == uid)]
     
-        movieEmbIds = cadidates[['movieEmbeddingId']].drop_duplicates()
-        movieAvgRatings = np.array([self.movie_avg_ratings.get(i) for i in movieEmbIds.tolist()])
+        movieEmbIds = candidates['movieEmbeddingId'].drop_duplicates()
+
+        movieAvgRatings = movieEmbIds.map(self.movie_avg_ratings)
         genreEmbeddings = np.array(list(map(lambda x: np.array(x), candidates.loc[:]['genreEmbedding'].values)))
-        userEmbeddingIds = [user_embedding for _ in range(0,len(movieEmbIds))]
+        userEmbeddingIds = [user_embedding_id for _ in range(0,len(movieEmbIds))]
 
         userAvgRatings = [user_avg_rating for _ in range(0, len(movieEmbIds))]
         movieAvgRatings = [self.movie_avg_ratings.get(idx) for idx in movieEmbIds]
 
-        inputs = [user_embedding_ids, userAvgRatings, movieEmbIds, movieAvgRatings, genreEmbeddings]
-        predictions = self.model.predict(inputs, 2**10)
+        inputs = [userEmbeddingIds, userAvgRatings, movieEmbIds, movieAvgRatings, genreEmbeddings]
+        pred_start = timer()
+        predictions = self.model.predict(inputs, 2**10).squeeze()
+        pred_end = timer()
+        print('Pred: ', pred_end-pred_start)
+        print(predictions)
+        predictions = pd.DataFrame({'prediction': predictions, 'movieId': candidates['movieId'].drop_duplicates().values}).sort_values(by=['prediction'], ascending=False)
 
-        return predictions.squeeze().sort(reverse=True)[0:numRatings]
+        end = timer()
+        print('Predictions took', end-start)
+
+        return predictions[:numRatings]
 
     
     def predict_bulk(self, ids, numRatings):

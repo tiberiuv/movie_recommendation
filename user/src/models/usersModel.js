@@ -9,9 +9,7 @@ const UserSchema = new Schema ({
         type: String,
         trim: 'true',
     },
-    ratings: {
-        type: [Schema.Types.ObjectId]
-    }
+    ratings: [{ type : Schema.Types.ObjectId, ref: 'Rating' }],
 })
 
 export default mongoose.model('User', UserSchema)

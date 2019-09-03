@@ -30,7 +30,7 @@ export const MovieList = ({
             {movies
                 .filter(movie => !!movie.posterUrl)
                 .map(movie => (
-                    <React.Fragment key={movie.movieId}>
+                    <React.Fragment key={movie._id}>
                         <Movie
                             title={movie.title}
                             genres={movie.genres}
@@ -48,8 +48,8 @@ export const MovieList = ({
                     </React.Fragment>
                 ))}
             {isLoading && (
-                <div className={STYLES.loading}>
-                    <CircularProgress color="primary" />
+                <div>
+                    <CircularProgress className={STYLES.loading} color="primary" />
                 </div>
             )}
         </div>

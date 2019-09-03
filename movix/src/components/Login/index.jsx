@@ -3,6 +3,7 @@ import STYLES from './index.styl'
 import React, {Component, useState} from 'react'
 // import connect from '../../connectRefetch'
 import {connect} from 'react-refetch'
+import {Redirect} from 'react-router-dom'
 
 import {TextField, Button} from '@material-ui/core'
 import CONFIG from '../../config'
@@ -113,8 +114,8 @@ export const Login = ({login, fetchLogin, signUp, fetchSignUp}) => {
                         Register
                     </Button>
                 </div>
-                {fetchSignUp && fetchSignUp.fulfilled && fetchSignUp.value && <span> Successful register </span>}
-                {fetchLogin && fetchLogin.fulfilled && fetchLogin.value && <span> Successful logged-in </span>}
+                {fetchSignUp && fetchSignUp.fulfilled && fetchSignUp.value && <Redirect to="/" />}
+                {fetchLogin && fetchLogin.fulfilled && fetchLogin.value && <Redirect to="/" />}
             </form>
         </div>
     )

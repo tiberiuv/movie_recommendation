@@ -9,6 +9,7 @@ import MovieList from '../MovieList/index'
 import withProtected from '../Auth/protectedComponent'
 import {getUser} from '../Auth'
 import qs from 'query-string'
+import {setToken, getToken} from '../Auth/index'
 
 export class Home extends Component {
     defaultPagination = {offset: 0, count: 20}
@@ -128,6 +129,7 @@ const withFetchers = connect(() => ({
     getMovies: (query, cb) => ({
         moviesFetch: {
             url: `${CONFIG.movieApi}/search`,
+            headers: {authorization: `${getToken()}`},
             method: 'POST',
             body: JSON.stringify(query),
             then: cb,

@@ -43,7 +43,6 @@ const getRecommendations = async (req) => {
     const currentToken = req.headers['authorization']
     const {id} = jwt.decode(currentToken)
     const uid = Math.ceil(Math.random() * (138493 - 1) + 1)
-    console.log(uid)
     const {data} = await axios.get(`http://127.0.0.1:5000/recommend/${uid}`)
     const idToRating = data.reduce((prev, curr) => {
         prev[curr[1]] = curr[0]
@@ -63,14 +62,12 @@ const getRecommendations = async (req) => {
 export const searchMovies = async (req, res) => {
     try {
         const {offset, count, term, recommendations} = req.body
-        console.log(offset, term)
         if(offset === undefined || count === undefined) 
             throwError(400,'Bad Request', 'Offset or count missing in query')()
         let movies
         if(recommendations) {
-            console.log('HANDLING RECOMMENDATIONS')
             const predictedMovies = await getRecommendations(req)
-            sendSuccess(res)(predictedMovies) 
+            return sendSuccess(res)(predictedMovies) 
             
         } else if(!term) {
             movies = await Movie

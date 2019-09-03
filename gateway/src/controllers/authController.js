@@ -32,6 +32,7 @@ export const signUp = async (req, res) => {
             throwError(400, 'Incorrect Request','Email or password is missing')()
 
         if(currentToken) {
+            console.log('current token', currentToken)
             mergeSession(currentToken, email, password, res)
         } else {
             const [, hashedPass] = await Promise.all([
@@ -97,13 +98,22 @@ export const logIn = async (req, res) => {
 const mergeSession = async (token, email, password, res) => {
     try {
         const verifiedToken = verifyJWT(token)
-        const user = await User
+        const hashedPassword = await argon
+            .hash(password)
+            .then(
+                throwIf(r => !r, 500, 'Argon error'),
+                throwError(500, 'Mongodb error')
+            )
+        await User
             .findById(verifiedToken.id)
             .updateOne({
-                $set: {email, password},
+                $set: {email, password: hashedPassword},
             })
-            .then(throwIf(r => !r, 404, 'Not found', 'User not found'))
-        sendSuccess(res)(user)
+            .then(
+                throwIf(r => !r, 404, 'Not found', 'User not found'),
+                throwError(500, 'Mongoose error')
+            )
+        sendSuccess(res)(token)
     } catch (err) {
         sendError(res)(err)
     }
@@ -111,9 +121,11 @@ const mergeSession = async (token, email, password, res) => {
 
 const verifyJWT = (token) => {
     try{
+        console.log(token)
         const decryptedToken = jwt.verify(token, publicKey, {algorithm: SIGN_ALGORITHM})
         return decryptedToken
     } catch (err) {
+        console.log(err)
         throwError(401, 'Invalid token')
     }
 }

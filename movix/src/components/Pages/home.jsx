@@ -8,12 +8,16 @@ import CONFIG from '../../config'
 import MovieList from '../MovieList/index'
 import withProtected from '../Auth/protectedComponent'
 import {getUser} from '../Auth'
+import qs from 'query-string'
 
 export class Home extends Component {
+    defaultPagination = {offset: 0, count: 20}
     state = {
         query: {
             offset: 0,
             count: 20,
+            term: '',
+            recommendations: false,
         },
         error: '',
         hasMore: true,
@@ -22,12 +26,36 @@ export class Home extends Component {
         ratings: [],
     }
 
+    getSearchTerm = location => {
+        return location.search.replace('?', '')
+    }
+
     componentWillMount = () => {
-        this.props.getMovies(this.state.query, this.injectState)
+        this.props.getMovies({...this.state.query, term: this.getSearchTerm(this.props.location)}, this.injectState)
+    }
+
+    componentDidUpdate = prevProps => {
+        const oldTerm = this.getSearchTerm(prevProps.location)
+        const newTerm = this.getSearchTerm(this.props.location)
+        if (oldTerm !== newTerm) {
+            this.setState({query: this.defaultPagination, movies: []}, () =>
+                this.props.getMovies({...this.state.query, term: newTerm}, this.injectState),
+            )
+        }
+        if (prevProps.recommendations !== this.props.recommendations) {
+            this.setState(
+                {query: this.defaultPagination, movies: [], recommendations: this.props.recommendations},
+                () =>
+                    this.props.getMovies(
+                        {...this.state.query, term: newTerm, recommendations: this.props.recommendations},
+                        this.injectState,
+                    ),
+            )
+        }
     }
 
     loadNextMovies = () => {
-        const {getMovies} = this.props
+        const {getMovies, location, recommendations} = this.props
         const {query} = this.state
 
         const newOffSet = query.offset + query.count
@@ -35,6 +63,8 @@ export class Home extends Component {
             {
                 ...this.state.query,
                 offset: newOffSet,
+                term: this.getSearchTerm(location),
+                recommendations,
             },
             this.injectState,
         )

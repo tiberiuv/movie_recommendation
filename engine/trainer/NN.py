@@ -22,13 +22,12 @@ from keras import callbacks, regularizers
 from keras.regularizers import l2
 from keras.utils import to_categorical, multi_gpu_model
 from keras.backend.tensorflow_backend import set_session
-from generator import Generator
+from .generator import Generator
 from sklearn import preprocessing
 from keras import backend as K
 import keras
 from sklearn.preprocessing import MultiLabelBinarizer
-
-from utils import calculate_ndcg
+from keras.backend import clear_session
 
 def root_mean_squared_error(y_true, y_pred):
     return K.sqrt(K.mean(K.square(y_pred - y_true)))
@@ -36,13 +35,15 @@ def root_mean_squared_error(y_true, y_pred):
 class NN(object):
 
     def __init__(self, ratings, movies, batch_size=2**10, embedding_user=100, embedding_movies=100, embedding_genres=20):
-        
+        clear_session()
+        self.newUsersMap = {}
         self.batch_size = batch_size
         self.embedding_user = embedding_user
         self.embedding_movies = embedding_movies
         self.embedding_genres = embedding_genres
 
         self.n_users = len(ratings['userId'].unique())
+        print('Num users: ',self.n_users)
         self.n_movies = len(ratings['movieId'].unique())
 
         genres = list(set([j for i in movies['genres'].values for j in i.split('|')]))
@@ -50,6 +51,7 @@ class NN(object):
 
         one_hot = MultiLabelBinarizer()
         movies['genreEmbedding'] = [tuple(x) for x in one_hot.fit_transform(movies['genres'].map(lambda x: x.split('|'))).tolist()]
+        
         ratings['genreEmbedding'] = movies.merge(ratings, on='movieId')[['genreEmbedding']]
 
         usersMap = {x:idx for idx,x in enumerate(ratings['userId'].drop_duplicates().values.tolist())}
@@ -231,36 +233,33 @@ class NN(object):
         user_embeddings = self.model.get_weights('user_embedding')
 
     def predict(self, uid, numRatings):
-        start = timer()
         ratings = self.ratings
         movies = self.movies
         user_embedding_id = ratings[ratings['userId'] == uid]['userEmbeddingId'].drop_duplicates().values
 
-        user_avg_rating = self.user_avg_ratings.get(user_embedding_id.item(0))
+        try:
+            user_avg_rating = self.user_avg_ratings.get(user_embedding_id.item(0))
+        except:
+            user_avg_rating = 2.5
 
-        candidates = ratings[~ratings['movieId'].isin(ratings['userId'] == uid)]
+        candidates = ratings[~ratings['movieId'].isin(ratings['userId'] == uid)].drop_duplicates(subset='movieEmbeddingId')
     
-        movieEmbIds = candidates['movieEmbeddingId'].drop_duplicates()
+        movieEmbIds = candidates['movieEmbeddingId']
 
         movieAvgRatings = movieEmbIds.map(self.movie_avg_ratings)
         genreEmbeddings = np.array(list(map(lambda x: np.array(x), candidates.loc[:]['genreEmbedding'].values)))
+
         userEmbeddingIds = [user_embedding_id for _ in range(0,len(movieEmbIds))]
 
         userAvgRatings = [user_avg_rating for _ in range(0, len(movieEmbIds))]
         movieAvgRatings = [self.movie_avg_ratings.get(idx) for idx in movieEmbIds]
 
         inputs = [userEmbeddingIds, userAvgRatings, movieEmbIds, movieAvgRatings, genreEmbeddings]
-        pred_start = timer()
         predictions = self.model.predict(inputs, 2**10).squeeze()
-        pred_end = timer()
-        print('Pred: ', pred_end-pred_start)
-        print(predictions)
-        predictions = pd.DataFrame({'prediction': predictions, 'movieId': candidates['movieId'].drop_duplicates().values}).sort_values(by=['prediction'], ascending=False)
 
-        end = timer()
-        print('Predictions took', end-start)
+        predictions = pd.DataFrame({'prediction': predictions, 'movieId': candidates['movieId'].values}).sort_values(by=['prediction'], ascending=False)
 
-        return predictions[:numRatings]
+        return predictions[:numRatings].to_numpy().tolist()
 
     
     def predict_bulk(self, ids, numRatings):
@@ -312,6 +311,20 @@ class NN(object):
                             suffixes=['_u', '_m']).sort_values(by='predictions', ascending=False)
         print(unrated_predictions_df[['predictions', 'title', 'genres']])
         print(unrated_predictions_df['predictions'].describe())
+    
+    def retrain(self, ratings):
+        self.model.train()
+        try:
+            self.s_model.save_weights('model.h5')
+        except AttributeError:
+            print('Saving single gpu model')
+            self.model.save_weights('model.h5')
+
+    
+    def retrainForUser(self, uid, ratings):
+        self.n_users += 1
+        self.newUsersMap[uid] = self.n_users
+        self.build_model()
         
 
     # def test_on_user(self, uid):

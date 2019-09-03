@@ -1,6 +1,8 @@
 import Movie from '../models/movie'
 import retrievePoster from './posterController'
 import {sendError, sendSuccess, throwError, throwIf} from '../utils/errorHandling'
+import axios from 'axios'
+import jwt from 'jsonwebtoken'
 
 export const health = async (req, res) => {
     return sendSuccess(res)('Alive')
@@ -37,20 +39,58 @@ const savePoster = async (movie) => {
     return updatedMovie
 }
 
+const getRecommendations = async (req) => {
+    const currentToken = req.headers['authorization']
+    const {id} = jwt.decode(currentToken)
+    const uid = Math.ceil(Math.random() * (138493 - 1) + 1)
+    console.log(uid)
+    const {data} = await axios.get(`http://127.0.0.1:5000/recommend/${uid}`)
+    const idToRating = data.reduce((prev, curr) => {
+        prev[curr[1]] = curr[0]
+        return prev
+    }, {})
+    const movies = await Movie
+        .find({movieId: { $in: data.map(x => x[1])}})
+        .then(
+            throwIf(r => !r, 400, 'Not found', 'MovieId not found'),
+            throwError(500, 'Mongodb error')
+        )
+    return movies
+        .map(m => ({...m._doc , rating: idToRating[m.movieId]}))
+        .sort(({rating: a},{rating: b}) => b - a)
+}
+
 export const searchMovies = async (req, res) => {
     try {
-        const {offset, count} = req.body
+        const {offset, count, term, recommendations} = req.body
+        console.log(offset, term)
         if(offset === undefined || count === undefined) 
             throwError(400,'Bad Request', 'Offset or count missing in query')()
-
-        const movies = await Movie
-            .find({})
-            .skip(offset)
-            .limit(count)
-            .then(
-                throwIf(r => !r, 400, 'Not found', 'MovieId not found'),
-                throwError(500, 'Mongodb error')
-            )
+        let movies
+        if(recommendations) {
+            console.log('HANDLING RECOMMENDATIONS')
+            const predictedMovies = await getRecommendations(req)
+            sendSuccess(res)(predictedMovies) 
+            
+        } else if(!term) {
+            movies = await Movie
+                .find({})
+                .skip(offset)
+                .limit(count)
+                .then(
+                    throwIf(r => !r, 400, 'Not found', 'MovieId not found'),
+                    throwError(500, 'Mongodb error')
+                )
+        } else {
+            movies = await Movie
+                .find({$text: { $search: term }})
+                .skip(offset)
+                .limit(count)
+                .then(
+                    throwIf(r => !r, 400, 'Not found', 'MovieId not found'),
+                    throwError(500, 'Mongodb error')
+                )
+        }
         movies.map(movie => !movie.posterUrl && savePoster(movie))
         sendSuccess(res)(movies)
     } catch (err) {

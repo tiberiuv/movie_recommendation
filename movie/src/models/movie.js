@@ -42,6 +42,16 @@ const MovieSchema = new Schema ({
 
 }, {autoIndex: false})
 
+MovieSchema.index({
+    title: 'text',
+    genre: 'text',
+    summary: 'text',
+},{weights: {
+    title: 5,
+    genre: 2,
+    summary: 1,
+}})
+
 function genreToArray(genreString) {
     return genreString.split('|')
 }

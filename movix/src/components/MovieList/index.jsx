@@ -38,6 +38,7 @@ export const MovieList = ({
                             summary={movie.summary}
                             cast={movie.castMembers}
                             rating={ratings && ratings.find(x => x.movieId === movie.movieId)}
+                            prediction={movie.rating}
                             handleRatingChange={rating => handleRatingChange(rating, movie.movieId)}
                         />
                         <Popper id={movie.movieId} open={isOpen(movie.movieId)}>
@@ -46,7 +47,11 @@ export const MovieList = ({
                         </Popper>
                     </React.Fragment>
                 ))}
-            {isLoading && <CircularProgress className={STYLES.progress} color="primary" />}
+            {isLoading && (
+                <div className={STYLES.loading}>
+                    <CircularProgress color="primary" />
+                </div>
+            )}
         </div>
     )
 }

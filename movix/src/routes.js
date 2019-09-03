@@ -12,31 +12,15 @@ import {setToken, getToken} from './components/Auth'
 import NotFound from './components/NotFound.jsx'
 
 const MainRoutes = ({sessionFetch}) => {
-    useEffect(() => {
-        if (!getToken()) {
-            sessionFetch()
-        }
-    }, [])
-
-    return !!getToken() ? (
+    return (
         <Switch>
             <Route exact path="/" component={Home} />
+            <Route exact path="/recommendations" render={props => <Home recommendations={true} {...props} />} />
             <Route path="/login" component={Login} />
             <Route path="/movies" component={Movie} />
             <Route component={NotFound} />
         </Switch>
-    ) : (
-        <CircularProgress className="root" color="primary" />
     )
 }
 
-const withFetchers = connect(() => ({
-    sessionFetch: cb => ({
-        session: {
-            url: `${CONFIG.gatewayApi}/session`,
-            then: token => setToken(token) && cb,
-        },
-    }),
-}))
-
-export default withFetchers(MainRoutes)
+export default MainRoutes

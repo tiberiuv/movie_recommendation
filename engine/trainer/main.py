@@ -43,7 +43,7 @@ def main(job_dir, **args):
 	model.load_model(os.path.join(dirname, '../model.h5'))
 	# model.test_on_user(12413)
 	# model.get_test_ndcg()
-	print(model.predict(1, 50))
+	print(model.predict(50, 50))
 
 if __name__=='__main__':
 	parser = argparse.ArgumentParser()

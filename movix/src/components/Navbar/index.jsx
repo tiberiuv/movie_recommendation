@@ -3,10 +3,13 @@ import STYLES from './index.styl'
 import {withRouter} from 'react-router-dom'
 import {AppBar, Toolbar, IconButton, Typography, InputBase, MenuItem, Menu} from '@material-ui/core'
 import {Search, More, MenuRounded} from '@material-ui/icons'
+import qs from 'query-string'
+
 export class NavigationBar extends React.Component {
     state = {
         anchorEl: null,
         mobileMoreAnchorEl: null,
+        searchTerm: '',
     }
 
     handleProfileMenuOpen = event => {
@@ -17,6 +20,18 @@ export class NavigationBar extends React.Component {
         this.props.history.push(route)
         this.setState({anchorEl: null})
     }
+
+    handleChangeTerm = e => {
+        const {value} = e.target
+        this.setState({searchTerm: value})
+    }
+
+    handleEnter = e => e.key === 'Enter' && this.props.history.push({pathname: '/', search: this.state.searchTerm})
+
+    handleRecommendations = () => {
+        this.props.history.push({pathname: '/recommendations', search: this.state.searchTerm})
+    }
+
     render() {
         const {anchorEl} = this.state
         const isMenuOpen = Boolean(anchorEl)
@@ -57,15 +72,18 @@ export class NavigationBar extends React.Component {
                                 <Search />
                             </div>
                             <InputBase
+                                value={this.state.searchTerm}
+                                onKeyDown={this.handleEnter}
                                 placeholder="Search…"
                                 classes={{
                                     root: STYLES.inputRoot,
                                     input: STYLES.inputInput,
                                 }}
+                                onChange={this.handleChangeTerm}
                             />
                         </div>
                         <div className={STYLES.sectionMobile}>
-                            <IconButton aria-haspopup="true" onClick={this.handleMobileMenuOpen} color="inherit">
+                            <IconButton aria-haspopup="true" onClick={this.handleRecommendations} color="inherit">
                                 <More />
                             </IconButton>
                         </div>

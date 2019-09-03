@@ -1,12 +1,12 @@
 import STYLES from './index.styl'
 
 import React, {Component, useState} from 'react'
-import connect from '../../connectRefetch'
-// import {connect} from 'react-refetch'
+// import connect from '../../connectRefetch'
+import {connect} from 'react-refetch'
 
 import {TextField, Button} from '@material-ui/core'
 import CONFIG from '../../config'
-import {setToken} from '../Auth/index'
+import {setToken, getToken} from '../Auth/index'
 
 const initialState = {
     email: {
@@ -124,15 +124,17 @@ const connectedFetchers = connect(() => ({
     signUp: body => ({
         fetchSignUp: {
             url: `${CONFIG.gatewayApi}/signup`,
+            headers: {authorization: `${getToken()}`},
             method: 'POST',
             force: true,
             body: JSON.stringify(body),
-            then: token => setToken(token),
+            then: setToken,
         },
     }),
     login: body => ({
         fetchLogin: {
             url: `${CONFIG.gatewayApi}/login`,
+            headers: {authorization: `${getToken()}`},
             method: 'POST',
             force: true,
             body: JSON.stringify(body),

@@ -4,8 +4,9 @@ import {Typography, Card, CardMedia, CardContent, CardActionArea, Icon, CardActi
 import Rating from 'react-rating'
 import connect from '../../connectRefetch'
 
-export const Movie = ({title, posterUrl, genres, summary, onClick, handleRatingChange, rating}) => {
+export const Movie = ({title, posterUrl, genres, summary, onClick, handleRatingChange, rating, prediction}) => {
     const displayGenres = () => genres.split('|').join(' ')
+    const predictionLabel = prediction ? `Predicted ${prediction}` : undefined
     return (
         <Card onClick={onClick}>
             <CardMedia className={STYLES.poster} image={posterUrl} title={title} />
@@ -19,7 +20,7 @@ export const Movie = ({title, posterUrl, genres, summary, onClick, handleRatingC
                 <Rating
                     className={STYLES.rating}
                     onChange={handleRatingChange}
-                    initialRating={rating && rating.rating}
+                    initialRating={(rating && rating.rating) || prediction}
                     emptySymbol={
                         <Icon className={STYLES.starIcon} fontSize="large">
                             star_border
@@ -32,6 +33,7 @@ export const Movie = ({title, posterUrl, genres, summary, onClick, handleRatingC
                     }
                     fractions={2}
                 />
+                {predictionLabel && <label>{predictionLabel}</label>}
             </CardContent>
         </Card>
     )

@@ -13,6 +13,7 @@
     "dotenv": "^6.2.0",
     "elasticsearch": "^15.4.1",
     "express": "^4.16.4",
+    "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.4.13",
     "morgan": "^1.9.1",
     "postman-request": "^2.88.1-postman.6",

@@ -3,12 +3,12 @@ import {render} from 'react-dom'
 import App from './App'
 import './index.css'
 import * as serviceWorker from './serviceWorker'
-import {Router} from 'react-router'
+import {Router} from 'react-router-dom'
 import {createBrowserHistory} from 'history'
 import 'core-js/stable'
 import 'regenerator-runtime/runtime'
 
-const history = createBrowserHistory({forceRefresh: true})
+export const history = createBrowserHistory()
 
 render(
     <Router history={history}>

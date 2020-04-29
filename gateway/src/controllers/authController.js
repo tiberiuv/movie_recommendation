@@ -28,7 +28,7 @@ export const signUp = async (req, res) => {
     try {
         const {email, password} = req.body
         const currentToken = req.headers['authorization']
-        if (!email || !password) 
+        if (!email || !password)
             throwError(400, 'Incorrect Request','Email or password is missing')()
 
         if(currentToken) {
@@ -52,15 +52,15 @@ export const signUp = async (req, res) => {
             const user = await User
                 .create({email: email, password: hashedPass})
                 .then(
-                    throwIf(r => !r, 500, 'Mongo error', 'User not created'), 
+                    throwIf(r => !r, 500, 'Mongo error', 'User not created'),
                     throwError(500, 'Mongo error')
                 )
-    
+
             signOptions = {...signOptions, subject: email}
-    
+
             const token = jwt.sign(makePayloadAuthenticated(user._id), privateKEY, signOptions)
             if(!token) throwError(500, 'Jwt sign error', 'Something went wrong with signing the jwt')
-            sendSuccess(res)(token)   
+            sendSuccess(res)(token)
         }
     } catch(err) {
         console.log(err)

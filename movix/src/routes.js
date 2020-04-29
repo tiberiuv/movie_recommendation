@@ -1,14 +1,9 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import {Route, Switch} from 'react-router-dom'
-import React, {useEffect} from 'react'
-import {CircularProgress} from '@material-ui/core'
+import React from 'react'
 
 import {Home} from './components/Pages'
 import Login from './components/Login'
 import Movie from './components/Movie'
-import connect from './connectRefetch'
-import CONFIG from './config'
-import {setToken, getToken} from './components/Auth'
 import NotFound from './components/NotFound.jsx'
 
 const MainRoutes = ({sessionFetch}) => {

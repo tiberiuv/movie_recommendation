@@ -50,7 +50,6 @@ let plugins = [
         buildEnv,
         inject: 'body'
     }),
-    new CaseSensitivePathsPlugin(),
     new MiniCssExtractPlugin({
         filename: CONFIG.HOT_RELOAD ? '[name].css' : '[name].[hash].css',
         chunkFilename: CONFIG.HOT_RELOAD ? '[id].css' : '[id].[hash].css'

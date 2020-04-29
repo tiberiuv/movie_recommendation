@@ -3,7 +3,6 @@ import STYLES from './index.styl'
 import {withRouter} from 'react-router-dom'
 import {AppBar, Toolbar, IconButton, Typography, InputBase, MenuItem, Menu} from '@material-ui/core'
 import {Search, More, MenuRounded} from '@material-ui/icons'
-import qs from 'query-string'
 
 export class NavigationBar extends React.Component {
     state = {

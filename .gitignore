@@ -10,7 +10,6 @@ tags
 ~$*.doc*
 Backup of *.doc*
 *.tmp
-.env
 /.mypy_cache/
 engine/.mypy_cache/
 *.pyc

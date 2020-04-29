@@ -15,7 +15,7 @@ export default (app) => {
         app.use(compression())
         app.use(helmet())
     }
-    
+
     app.use(cors(corsOptions))
     app.use(express.urlencoded({extended: true}))
     app.use(express.json())
@@ -25,7 +25,7 @@ export default (app) => {
         res.header('Access-Control-Allow-Credentials', "*")
         res.header('Access-Control-Expose-Headers', 'x-access-token')
         next()
-    })  
+    })
     if(process.env.NODE_ENV === 'development') {
         app.use(morgan('dev'))
     }

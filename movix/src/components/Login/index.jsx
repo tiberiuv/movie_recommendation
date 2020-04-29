@@ -1,7 +1,6 @@
 import STYLES from './index.styl'
 
 import React, {Component, useState} from 'react'
-// import connect from '../../connectRefetch'
 import {connect} from 'react-refetch'
 import {Redirect} from 'react-router-dom'
 
